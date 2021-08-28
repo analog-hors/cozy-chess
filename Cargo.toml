@@ -1,0 +1,14 @@
+[package]
+name = "cozy-chess"
+version = "0.1.0"
+authors = ["analog-hors <44050761+analog-hors@users.noreply.github.com>"]
+edition = "2018"
+build = "src/build.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cozy-chess-types = { path = "src/types" }
+
+[build-dependencies]
+cozy-chess-types = { path = "src/types" }
