@@ -28,46 +28,57 @@ impl Default for Board {
 }
 
 impl Board {
+    #[inline(always)]
     pub fn pieces(&self, piece: Piece) -> BitBoard {
         self.inner.pieces(piece)
     }
 
+    #[inline(always)]
     pub fn colors(&self, color: Color) -> BitBoard {
         self.inner.colors(color)
     }
 
+    #[inline(always)]
     pub fn occupied(&self) -> BitBoard {
         self.inner.colors(Color::White) | self.inner.colors(Color::Black)
     }
 
+    #[inline(always)]
     pub fn side_to_move(&self) -> Color {
         self.inner.side_to_move()
     }
 
+    #[inline(always)]
     pub fn castle_rights(&self, color: Color) -> &CastleRights {
         self.inner.castle_rights(color)
     }
 
+    #[inline(always)]
     pub fn en_passant(&self) -> Option<File> {
         self.inner.en_passant()
     }
 
+    #[inline(always)]
     pub fn hash(&self) -> u64 {
         self.inner.hash()
     }
     
+    #[inline(always)]
     pub fn pinned(&self) -> BitBoard {
         self.pinned
     }
 
+    #[inline(always)]
     pub fn checkers(&self) -> BitBoard {
         self.checkers
     }
 
+    #[inline(always)]
     pub fn piece_on(&self, square: Square) -> Option<Piece> {
         Piece::ALL.iter().copied().find(|&p| self.pieces(p).has(square))
     }
 
+    #[inline(always)]
     pub fn color_on(&self, square: Square) -> Option<Color> {
         if self.colors(Color::White).has(square) {
             Some(Color::White)
@@ -78,6 +89,7 @@ impl Board {
         }
     }
 
+    #[inline(always)]
     pub fn king(&self, color: Color) -> Square {
         (self.pieces(Piece::King) & self.colors(color)).next_square().unwrap()
     }

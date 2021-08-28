@@ -83,6 +83,7 @@ pub struct ZobristBoard {
 }
 
 impl ZobristBoard {
+    #[inline(always)]
     pub fn empty() -> Self {
         Self {
             pieces: [BitBoard::EMPTY; Piece::NUM],
@@ -97,26 +98,32 @@ impl ZobristBoard {
         }
     }
 
+    #[inline(always)]
     pub fn pieces(&self, piece: Piece) -> BitBoard {
         self.pieces[piece as usize]
     }
 
+    #[inline(always)]
     pub fn colors(&self, color: Color) -> BitBoard {
         self.colors[color as usize]
     }
 
+    #[inline(always)]
     pub fn side_to_move(&self) -> Color {
         self.side_to_move
     }
 
+    #[inline(always)]
     pub fn castle_rights(&self, color: Color) -> &CastleRights {
         &self.castle_rights[color as usize]
     }
 
+    #[inline(always)]
     pub fn en_passant(&self) -> Option<File> {
         self.en_passant
     }
 
+    #[inline(always)]
     pub fn hash(&self) -> u64 {
         self.hash
     }
@@ -155,6 +162,7 @@ impl ZobristBoard {
         }
     }
 
+    #[inline(always)]
     pub fn toggle_side_to_move(&mut self) {
         self.side_to_move = !self.side_to_move;
         self.hash ^= ZOBRIST.black_to_move;

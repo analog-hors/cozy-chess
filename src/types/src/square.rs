@@ -49,18 +49,22 @@ impl std::fmt::Display for Square {
 }
 
 impl Square {
+    #[inline(always)]
     pub const fn new(file: File, rank: Rank) -> Self {
         Self::index_const(((rank as usize) << 3) | file as usize)
     }
 
+    #[inline(always)]
     pub const fn rank(self) -> Rank {
         Rank::index_const(self as usize >> 3)
     }
 
+    #[inline(always)]
     pub const fn file(self) -> File {
         File::index_const(self as usize & 0b000_111)
     }
 
+    #[inline(always)]
     pub const fn bitboard(self) -> BitBoard {
         BitBoard(1 << self as u8)
     }

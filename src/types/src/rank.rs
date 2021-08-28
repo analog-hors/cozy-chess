@@ -28,10 +28,12 @@ crate::helpers::enum_char_conv! {
 }
 
 impl Rank {
+    #[inline(always)]
     pub const fn bitboard(self) -> BitBoard {
         BitBoard(0b11111111 << (self as usize * 8))
     }
 
+    #[inline(always)]
     pub const fn relative_to(self, color: Color) -> Self {
         if let Color::White = color {
             self

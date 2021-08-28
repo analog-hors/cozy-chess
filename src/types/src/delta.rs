@@ -4,6 +4,7 @@ use crate::*;
 pub struct SquareDelta(pub i8, pub i8);
 
 impl SquareDelta {
+    #[inline(always)]
     pub const fn add(self, square: Square) -> Option<Square> {
         macro_rules! const_try {
             ($expr:expr) => {
