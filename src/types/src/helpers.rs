@@ -14,6 +14,7 @@ macro_rules! simple_enum {
             pub const NUM: usize = [$(Self::$variant),*].len();
             pub const ALL: [Self; Self::NUM] = [$(Self::$variant),*];
     
+            #[inline(always)]
             pub const fn try_index(index: usize) -> Option<Self> {
                 $(#[allow(non_upper_case_globals, unused)]
                 const $variant: usize = $name::$variant as usize;)*
@@ -24,10 +25,12 @@ macro_rules! simple_enum {
                 }
             }
 
+            #[inline(always)]
             pub fn index(index: usize) -> Self {
                 Self::try_index(index).unwrap_or_else(|| panic!("Index {} is out of range.", index))
             }
 
+            #[inline(always)]
             pub const fn index_const(index: usize) -> Self {
                 if let Some(value) = Self::try_index(index) {
                     value

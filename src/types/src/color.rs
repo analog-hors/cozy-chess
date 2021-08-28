@@ -16,6 +16,7 @@ crate::helpers::enum_char_conv! {
 impl std::ops::Not for Color {
     type Output = Self;
 
+    #[inline(always)]
     fn not(self) -> Self::Output {
         match self {
             Self::White => Self::Black,

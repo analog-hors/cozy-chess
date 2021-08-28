@@ -9,6 +9,7 @@ macro_rules! impl_math_ops {
             impl std::ops::$trait for BitBoard {
                 type Output = Self;
     
+                #[inline(always)]
                 fn $fn(self, other: Self) -> Self::Output {
                     Self(std::ops::$trait::$fn(self.0, other.0))
                 }
@@ -30,6 +31,7 @@ macro_rules! impl_math_assign_ops {
     ($($trait:ident,$fn:ident;)*) => {
         $(
             impl std::ops::$trait for BitBoard {
+                #[inline(always)]
                 fn $fn(&mut self, other: Self) {
                     std::ops::$trait::$fn(&mut self.0, other.0)
                 }
@@ -53,6 +55,7 @@ macro_rules! impl_shift_ops_for {
             impl std::ops::$trait<$type> for BitBoard {
                 type Output = Self;
     
+                #[inline(always)]
                 fn $fn(self, other: $type) -> Self::Output {
                     Self(std::ops::$trait::$fn(self.0, other))
                 }
@@ -64,6 +67,7 @@ macro_rules! impl_shift_assign_ops_for {
     ($type:ident; $($trait:ident,$fn:ident;)*) => {
         $(
             impl std::ops::$trait<$type> for BitBoard {
+                #[inline(always)]
                 fn $fn(&mut self, other: $type) {
                     std::ops::$trait::$fn(&mut self.0, other)
                 }
@@ -91,9 +95,12 @@ impl_shift_assign_ops!(i8, u8, i16, u16, i32, u32, i64, u64, isize, usize);
 macro_rules! impl_wrapping_ops {
     ($($fn:ident),*) => {
         impl BitBoard {
-            $(pub const fn $fn(self, other: Self) -> Self {
-                Self(self.0.$fn(other.0))
-            })*
+            $(
+                #[inline(always)]
+                pub const fn $fn(self, other: Self) -> Self {
+                    Self(self.0.$fn(other.0))
+                }
+            )*
         }
     };
 }
@@ -102,6 +109,7 @@ impl_wrapping_ops!(wrapping_add, wrapping_mul, wrapping_sub, wrapping_div);
 impl std::ops::Not for BitBoard {
     type Output = Self;
 
+    #[inline(always)]
     fn not(self) -> Self::Output {
         Self(!self.0)
     }
@@ -117,19 +125,23 @@ impl BitBoard {
         File::H.bitboard().0
     );
 
+    #[inline(always)]
     pub const fn popcnt(self) -> u32 {
         self.0.count_ones()
     }
 
+    #[inline(always)]
     pub const fn has(self, square: Square) -> bool {
         self.0 & square.bitboard().0 != BitBoard::EMPTY.0
     }
 
+    #[inline(always)]
     pub const fn empty(self) -> bool {
         self.0 == BitBoard::EMPTY.0
     }
 
     ///Grabs the least significant square, if it exists.
+    #[inline(always)]
     pub const fn next_square(self) -> Option<Square> {
         Square::try_index(self.0.trailing_zeros() as usize)
     }
@@ -138,6 +150,7 @@ impl BitBoard {
 impl Iterator for BitBoard {
     type Item = Square;
 
+    #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         let square = self.next_square();
         if let Some(square) = square {
@@ -146,12 +159,14 @@ impl Iterator for BitBoard {
         square
     }
 
+    #[inline(always)]
     fn size_hint(&self) -> (usize, Option<usize>) {
         (self.len(), Some(self.len()))
     }
 }
 
 impl ExactSizeIterator for BitBoard {
+    #[inline(always)]
     fn len(&self) -> usize {
         self.popcnt() as usize
     }

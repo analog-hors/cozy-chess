@@ -28,6 +28,7 @@ crate::helpers::enum_char_conv! {
 }
 
 impl File {
+    #[inline(always)]
     pub const fn bitboard(self) -> BitBoard {
         BitBoard(u64::from_ne_bytes([
             0b00000001,
