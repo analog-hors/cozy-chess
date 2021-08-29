@@ -5,6 +5,7 @@ mod parse;
 mod zobrist;
 
 use zobrist::*;
+pub use movegen::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum GameStatus {
