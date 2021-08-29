@@ -12,3 +12,14 @@ cozy-chess-types = { path = "src/types" }
 
 [build-dependencies]
 cozy-chess-types = { path = "src/types" }
+
+[profile.bench]
+lto = "thin"
+codegen-units = 1
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "perft"
+harness = false
