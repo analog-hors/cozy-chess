@@ -22,6 +22,21 @@ impl IntoIterator for PieceMoves {
     }
 }
 
+impl PieceMoves {
+    pub fn len(&self) -> usize {
+        const PROMOTION_MASK: BitBoard = BitBoard(
+            Rank::First.bitboard().0 | Rank::Eighth.bitboard().0
+        );
+        let moves = if self.piece == Piece::Pawn {
+            (self.to & !PROMOTION_MASK).popcnt() +
+            (self.to & PROMOTION_MASK).popcnt() * 4
+        } else {
+            self.to.popcnt()
+        };
+        moves as usize
+    }
+}
+
 pub struct PieceMovesIter {
     moves: PieceMoves,
     promotion: u8
@@ -61,5 +76,37 @@ impl Iterator for PieceMovesIter {
             })
         }
         None
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let len = self.len();
+        (len, Some(len))
+    }
+}
+
+impl ExactSizeIterator for PieceMovesIter {
+    fn len(&self) -> usize {
+        self.moves.len() - self.promotion as usize
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn len_handles_promotions() {
+        let mv = PieceMoves {
+            piece: Piece::Pawn,
+            from: Square::A7,
+            to: Square::A8.bitboard() | Square::B8.bitboard()
+        };
+        assert_eq!(mv.len(), 8);
+        let mut iter = mv.into_iter();
+        assert_eq!(iter.len(), 8);
+        for len in (0..8).rev() {
+            iter.next();
+            assert_eq!(iter.len(), len);
+        }
     }
 }
