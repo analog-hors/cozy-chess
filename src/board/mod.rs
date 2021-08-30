@@ -105,33 +105,34 @@ impl Board {
         }
     }
 
-    pub fn null_move(&mut self) -> bool {
+    pub fn null_move(&self) -> Option<Board> {
         if self.checkers.empty() {
-            let color = self.side_to_move();
-            let their_king = self.king(color);
-            let our_attackers = self.colors(color) & (
+            let mut board = self.clone();
+            let color = board.side_to_move();
+            let their_king = board.king(color);
+            let our_attackers = board.colors(color) & (
                 (get_bishop_rays(their_king) & (
-                    self.pieces(Piece::Bishop) |
-                    self.pieces(Piece::Queen)
+                    board.pieces(Piece::Bishop) |
+                    board.pieces(Piece::Queen)
                 )) |
                 (get_rook_rays(their_king) & (
-                    self.pieces(Piece::Rook) |
-                    self.pieces(Piece::Queen)
+                    board.pieces(Piece::Rook) |
+                    board.pieces(Piece::Queen)
                 ))
             );
     
             for square in our_attackers {
-                let between = get_between_rays(square, their_king) & self.occupied();
+                let between = get_between_rays(square, their_king) & board.occupied();
                 if between.popcnt() == 1 {
-                    self.pinned |= between;
+                    board.pinned |= between;
                 }
             }
 
-            self.inner.toggle_side_to_move();
-            self.inner.set_en_passant(None);
-            true
+            board.inner.toggle_side_to_move();
+            board.inner.set_en_passant(None);
+            Some(board)
         } else {
-            false
+            None
         }
     }
 
