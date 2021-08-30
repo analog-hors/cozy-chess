@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use cozy_chess::Board;
 
@@ -93,5 +95,9 @@ pub fn criterion_benchmark(criterion: &mut Criterion) {
         });
 }
 
-criterion_group!(benches, criterion_benchmark);
+criterion_group! {
+    name = benches;
+    config = Criterion::default().sample_size(300).measurement_time(Duration::from_secs(30));
+    targets = criterion_benchmark
+}
 criterion_main!(benches);
