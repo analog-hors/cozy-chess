@@ -27,43 +27,10 @@ pub struct PieceMovesIter {
     promotion: u8
 }
 
-impl PieceMovesIter {
-    pub fn next_dbg(&mut self) -> Option<Move> {
-        while let Some(to) = self.moves.to.next_square() {
-            let is_promotion = self.moves.piece == Piece::Pawn &&
-                matches!(to.rank(), Rank::First | Rank::Eighth);
-            let promotion = if is_promotion {
-                let promotion = match self.promotion {
-                    0 => Piece::Knight,
-                    1 => Piece::Bishop,
-                    2 => Piece::Rook,
-                    3 => Piece::Queen,
-                    _ => unreachable!()
-                };
-                if self.promotion < 3 {
-                    self.promotion += 1;
-                } else {
-                    self.promotion = 0;
-                    self.moves.to.next();
-                }
-                Some(promotion)
-            } else {
-                self.moves.to.next();
-                None
-            };
-            return Some(Move {
-                from: self.moves.from,
-                to,
-                promotion
-            })
-        }
-        None
-    }
-}
-
 impl Iterator for PieceMovesIter {
     type Item = Move;
 
+    #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(to) = self.moves.to.next_square() {
             let is_promotion = self.moves.piece == Piece::Pawn &&

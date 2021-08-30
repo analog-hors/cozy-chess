@@ -128,6 +128,7 @@ impl ZobristBoard {
         self.hash
     }
 
+    #[inline(always)]
     pub fn xor_square(&mut self, piece: Piece, color: Color, square: Square) {
         let square_bb = square.bitboard();
         self.pieces[piece as usize] ^= square_bb;
