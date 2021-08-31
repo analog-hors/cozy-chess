@@ -43,7 +43,7 @@ mod slider {
 macro_rules! abort_if {
     ($($expr:expr),*) => {
         $(if $expr {
-            return false;
+            return true;
         })*
     }
 }

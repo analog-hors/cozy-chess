@@ -314,4 +314,57 @@ mod tests {
             assert_eq!(board.hash(), expected.parse::<Board>().unwrap().hash());
         }
     }
+
+    #[test]
+    fn status_checkmate() {
+        let mut board: Board = "8/5p2/5rk1/2R1Q1pp/8/6P1/5PK1/8 b - - 3 69".parse().unwrap();
+        const MOVES: &'static [&'static str] = &[
+            "f6e6",
+            "e5g5",
+            "g6h7",
+            "c5c7",
+            "e6f6",
+            "g5f6",
+            "h5h4",
+            "c7f7",
+            "h7g8",
+            "f6g7"
+        ];
+        for mv in MOVES {
+            assert_eq!(board.status(), GameStatus::Ongoing);
+            board.play_unchecked(mv.parse().unwrap());
+        }
+        assert_eq!(board.status(), GameStatus::Checkmate);
+    }
+
+    #[test]
+    fn status_stalemate() {
+        let mut board = Board::default();
+        const MOVES: &'static [&'static str] = &[
+            "c2c4",
+            "h7h5",
+            "h2h4",
+            "a7a5",
+            "d1a4",
+            "a8a6",
+            "a4a5",
+            "a6h6",
+            "a5c7",
+            "f7f6",
+            "c7d7",
+            "e8f7",
+            "d7b7",
+            "d8d3",
+            "b7b8",
+            "d3h7",
+            "b8c8",
+            "f7g6",
+            "c8e6"
+        ];
+        for mv in MOVES {
+            assert_eq!(board.status(), GameStatus::Ongoing);
+            board.play_unchecked(mv.parse().unwrap());
+        }
+        assert_eq!(board.status(), GameStatus::Stalemate);
+    }
 }
