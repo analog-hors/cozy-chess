@@ -1,19 +1,21 @@
 [package]
-name = "cozy-chess-types"
+name = "cozy-chess"
 version = "0.1.0"
 authors = ["analog-hors <44050761+analog-hors@users.noreply.github.com>"]
 edition = "2018"
+build = "src/build.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-[profile.release]
-opt-level = 3
-debug = false
-debug-assertions = false
-overflow-checks = false
-lto = true
-panic = 'unwind'
-incremental = false
-codegen-units = 1
-rpath = false
+cozy-chess-types = { path = "../types" }
+
+[build-dependencies]
+cozy-chess-types = { path = "../types" }
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "perft"
+harness = false
