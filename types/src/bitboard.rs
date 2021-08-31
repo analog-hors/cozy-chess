@@ -125,6 +125,7 @@ impl BitBoard {
         File::H.bitboard().0
     );
 
+    ///Count the number of squares in the bitboard
     #[inline(always)]
     pub const fn popcnt(self) -> u32 {
         self.0.count_ones()

@@ -28,11 +28,14 @@ crate::helpers::enum_char_conv! {
 }
 
 impl Rank {
+    ///Get a bitboard with all squares on this rank set
     #[inline(always)]
     pub const fn bitboard(self) -> BitBoard {
         BitBoard(0b11111111 << (self as usize * 8))
     }
 
+    ///Get a rank relative to some color. This effectively
+    ///flips the rank if viewing from black's perspective.
     #[inline(always)]
     pub const fn relative_to(self, color: Color) -> Self {
         if let Color::White = color {

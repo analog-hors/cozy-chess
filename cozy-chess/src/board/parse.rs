@@ -72,6 +72,8 @@ impl Board {
         true
     }
 
+    ///Parse a FEN string. If `shredder` is true, it parses Shredder FEN instead.
+    ///You can also parse the board with [`FromStr`], which parses regular FEN.
     pub fn from_fen(fen: &str, shredder: bool) -> Result<Self, FenParseError> {
         let mut board = Self {
             inner: ZobristBoard::empty(),
@@ -258,12 +260,14 @@ pub enum FenParseError {
 impl FromStr for Board {
     type Err = FenParseError;
 
+    ///Parse the board. You can also parse Shredder FEN with [`Board::from_fen`]
     fn from_str(fen: &str) -> Result<Self, Self::Err> {
         Self::from_fen(fen, false)
     }
 }
 
 impl Display for Board {
+    ///Display the board. You can use the alternate format mode for Shredder FEN
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let shredder = f.alternate();
         for &rank in Rank::ALL.iter().rev() {

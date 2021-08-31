@@ -28,6 +28,7 @@ crate::helpers::enum_char_conv! {
 }
 
 impl File {
+    ///Get a bitboard with all squares on this file set
     #[inline(always)]
     pub const fn bitboard(self) -> BitBoard {
         BitBoard(u64::from_ne_bytes([

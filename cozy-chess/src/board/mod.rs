@@ -61,16 +61,22 @@ impl Board {
         self.inner.en_passant()
     }
 
+    ///Get the incrementally updated position hash.
+    ///Does not include the halfmove clock or fullmove number.
     #[inline(always)]
     pub fn hash(&self) -> u64 {
         self.inner.hash()
     }
-    
+
+    ///Get the pinned pieces on the board.
+    ///Note that this counts pieces regardless of color.
+    ///This counts any piece preventing check on our king.
     #[inline(always)]
     pub fn pinned(&self) -> BitBoard {
         self.pinned
     }
 
+    ///Get the pieces currently giving check.
     #[inline(always)]
     pub fn checkers(&self) -> BitBoard {
         self.checkers
@@ -86,11 +92,13 @@ impl Board {
         self.fullmove_number
     }
 
+    ///Get the type of the piece on `square`, if there is one.
     #[inline(always)]
     pub fn piece_on(&self, square: Square) -> Option<Piece> {
         Piece::ALL.iter().copied().find(|&p| self.pieces(p).has(square))
     }
 
+    ///Get the type of the piece on `square`, if there is one.
     #[inline(always)]
     pub fn color_on(&self, square: Square) -> Option<Color> {
         if self.colors(Color::White).has(square) {
@@ -102,6 +110,7 @@ impl Board {
         }
     }
 
+    ///Get the king square of some side.
     #[inline(always)]
     pub fn king(&self, color: Color) -> Square {
         (self.pieces(Piece::King) & self.colors(color)).next_square().unwrap()
@@ -122,6 +131,8 @@ impl Board {
         }
     }
 
+    ///Attempt to play a [null move](https://www.chessprogramming.org/Null_Move),
+    ///returning a new board if successful.
     pub fn null_move(&self) -> Option<Board> {
         if self.checkers.empty() {
             let mut board = self.clone();

@@ -63,6 +63,7 @@ pub const fn get_bishop_rays(square: Square) -> BitBoard {
     TABLE[square as usize]
 }
 
+///Get all squares between two squares, if reachable via a ray.
 pub const fn get_between_rays(from: Square, to: Square) -> BitBoard {
     const fn get_between_rays(from: Square, to: Square) -> BitBoard {
         let blockers = BitBoard(from.bitboard().0 ^ to.bitboard().0);
@@ -95,6 +96,7 @@ pub const fn get_between_rays(from: Square, to: Square) -> BitBoard {
     TABLE[from as usize][to as usize]
 }
 
+///Get a ray on the board that passes through both squares, if it exists.
 pub const fn get_line_rays(from: Square, to: Square) -> BitBoard {
     const fn get_line_rays(from: Square, to: Square) -> BitBoard {
         let rays = get_bishop_rays(from);
@@ -194,6 +196,7 @@ pub const fn get_king_moves(square: Square) -> BitBoard {
     TABLE[square as usize]
 }
 
+///Get pawn captures
 pub const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
     const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
         const PAWN_DELTAS: [[SquareDelta; 2]; Color::NUM] = [
@@ -229,6 +232,7 @@ pub const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
     TABLE[color as usize][square as usize]
 }
 
+///Get pawn forward moves/non-captures.
 pub const fn get_pawn_quiets(square: Square, color: Color, blockers: BitBoard) -> BitBoard {
     let square_bb = square.bitboard();
     let mut moves = BitBoard(if let Color::White = color {

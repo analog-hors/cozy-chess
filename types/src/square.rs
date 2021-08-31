@@ -64,6 +64,7 @@ impl Square {
         File::index_const(self as usize & 0b000_111)
     }
 
+    ///Get a bitboard with this square set
     #[inline(always)]
     pub const fn bitboard(self) -> BitBoard {
         BitBoard(1 << self as u8)
