@@ -1,21 +1,28 @@
 use super::*;
 
-fn perft(board: &Board, depth: u8) -> u32 {
-    if depth == 0 {
-        1
-    } else {
-        let mut nodes = 0;
-        board.generate_moves(&mut |moves| {
-            for mv in moves {
-                let mut board = board.clone();
-                board.play_unchecked(mv);
-                let child_nodes = perft(&board, depth - 1);
-                nodes += child_nodes;
-            }
-            false
-        });
-        nodes
+fn perft(board: &Board, depth: u8) -> u64 {
+    let mut nodes = 0;
+    match depth {
+        0 => nodes += 1,
+        1 => {
+            board.generate_moves(&mut |moves| {
+                nodes += moves.len() as u64;
+                false
+            });
+        }
+        _ => {
+            board.generate_moves(&mut |moves| {
+                for mv in moves {
+                    let mut board = board.clone();
+                    board.play_unchecked(mv);
+                    let child_nodes = perft(&board, depth - 1);
+                    nodes += child_nodes;
+                }
+                false
+            });
+        }
     }
+    nodes
 }
 
 macro_rules! make_perft_test {
@@ -23,7 +30,7 @@ macro_rules! make_perft_test {
         $(#[test]
         fn $name() {
             let board = $board.parse::<Board>().unwrap();
-            const NODES: &'static [u32] = &[$($node),*];
+            const NODES: &'static [u64] = &[$($node),*];
             for (depth, &nodes) in NODES.iter().enumerate() {
                 assert_eq!(perft(&board, depth as u8), nodes, "Perft {}", depth);
             }
