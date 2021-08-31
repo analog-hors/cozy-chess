@@ -8,8 +8,6 @@ pub use file::*;
 pub use rank::*;
 pub use bitboard::*;
 pub use castling::*;
-pub(crate) use delta::*;
-pub(crate) use magics::*;
 pub use chess_move::*;
 
 pub mod board;
