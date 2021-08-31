@@ -1,5 +1,4 @@
 use std::convert::TryInto;
-use std::num::NonZeroU32;
 use std::str::FromStr;
 use std::fmt::{Display, Formatter};
 
@@ -77,7 +76,9 @@ impl Board {
         let mut board = Self {
             inner: ZobristBoard::empty(),
             pinned: BitBoard::EMPTY,
-            checkers: BitBoard::EMPTY
+            checkers: BitBoard::EMPTY,
+            halfmove_clock: 0,
+            fullmove_number: 0
         };
         let mut parts = fen.split(' ');
         macro_rules! parse_fields {
@@ -169,13 +170,19 @@ impl Board {
                 Some(())
             }, FenParseError::InvalidEnPassant;
             |s| {
-                if s.parse::<u8>().ok()? > 100 {
-                    None
-                } else {
-                    Some(())
+                board.halfmove_clock = s.parse().ok()?;
+                if board.halfmove_clock > 100 {
+                    return None;
                 }
+                Some(())
             }, FenParseError::InvalidHalfMoveClock;
-            |s| s.parse::<NonZeroU32>().ok().map(|_| ()), FenParseError::InvalidFullmoveNumber;
+            |s| {
+                board.fullmove_number = s.parse().ok()?;
+                if board.fullmove_number == 0 {
+                    return None;
+                }
+                Some(())
+            }, FenParseError::InvalidFullmoveNumber;
         }
         if parts.next().is_some() {
             return Err(FenParseError::TooManyFields);
@@ -315,7 +322,7 @@ impl Display for Board {
         } else {
             write!(f, " -")?;
         }
-        write!(f, " 0 1")?;
+        write!(f, " {} {}", self.halfmove_clock, self.fullmove_number)?;
         Ok(())
     }
 }
