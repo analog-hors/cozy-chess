@@ -23,7 +23,7 @@ fn main() {
     let mut out_file: PathBuf = std::env::var("OUT_DIR").unwrap().into();
     out_file.push("sliding_moves.rs");
     let mut out_file = BufWriter::new(File::create(out_file).unwrap());
-    write!(&mut out_file, "const SLIDING_MOVES: &'static [u64; {}] = &[", table.len()).unwrap();
+    write!(&mut out_file, "const SLIDING_MOVES: &[u64; {}] = &[", table.len()).unwrap();
     for magic in &table {
         write!(&mut out_file, "{},", magic.0).unwrap();
     }

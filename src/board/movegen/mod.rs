@@ -185,15 +185,13 @@ impl Board {
                     ^ piece.bitboard()
                     | dest.bitboard();
                 //First test a basic ray to prevent an expensive magic lookup
-                if !(get_bishop_rays(our_king) & their_bishops).empty() {
-                    if !(get_bishop_moves(our_king, blockers) & their_bishops).empty() {
-                        continue;
-                    }
+                let on_ray = !(get_bishop_rays(our_king) & their_bishops).empty();
+                if on_ray && !(get_bishop_moves(our_king, blockers) & their_bishops).empty() {
+                    continue;
                 }
-                if !(get_rook_rays(our_king) & their_rooks).empty() {
-                    if !(get_rook_moves(our_king, blockers) & their_rooks).empty() {
-                        continue;
-                    }
+                let on_ray = !(get_rook_rays(our_king) & their_rooks).empty();
+                if on_ray && !(get_rook_moves(our_king, blockers) & their_rooks).empty() {
+                    continue;
                 }
                 abort_if!(listener(PieceMoves {
                     piece: PIECE,

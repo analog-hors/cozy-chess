@@ -13,6 +13,7 @@ struct ZobristConstants {
     black_to_move: u64
 }
 
+#[allow(clippy::eval_order_dependence)]
 const ZOBRIST: ZobristConstants = {
     //Simple Pcg64Mcg impl
     let mut state = 0x7369787465656E2062797465206E756Du128 | 1;
@@ -178,7 +179,7 @@ mod tests {
     fn zobrist_transpositions() {
         let board = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
             .parse::<Board>().unwrap();
-        const MOVES: &'static [[[&'static str; 4]; 2]] = &[
+        const MOVES: &[[[&str; 4]; 2]] = &[
             [["e2c4", "h8f8", "d2h6", "b4b3"], ["e2c4", "b4b3", "d2h6", "h8f8"]],
             [["c3a4", "f6g8", "e1d1", "a8c8"], ["c3a4", "a8c8", "e1d1", "f6g8"]],
             [["h1g1", "f6g4", "d2h6", "b4b3"], ["h1g1", "b4b3", "d2h6", "f6g4"]],

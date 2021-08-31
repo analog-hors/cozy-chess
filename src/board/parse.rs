@@ -333,14 +333,14 @@ mod tests {
 
     #[test]
     fn roundtrip_startpos() {
-        const STARTPOS: &'static str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         let board = STARTPOS.parse::<Board>().unwrap();
         assert_eq!(format!("{}", board), STARTPOS);
     }
     
     #[test]
     fn roundtrip_shredder_startpos() {
-        const STARTPOS: &'static str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w HAha - 0 1";
+        const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w HAha - 0 1";
         let board = Board::from_fen(STARTPOS, true).unwrap();
         assert_eq!(format!("{:#}", board), STARTPOS);
     }

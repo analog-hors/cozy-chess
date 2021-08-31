@@ -299,7 +299,7 @@ mod tests {
     fn play_moves() {
         let mut board = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
             .parse::<Board>().unwrap();
-        const MOVES: &'static [(&'static str, &'static str)] = &[
+        const MOVES: &[(&str, &str)] = &[
             ("f3f5", "r3k2r/p1ppqpb1/bn2pnp1/3PNQ2/1p2P3/2N4p/PPPBBPPP/R3K2R b KQkq - 1 1"),
             ("h3g2", "r3k2r/p1ppqpb1/bn2pnp1/3PNQ2/1p2P3/2N5/PPPBBPpP/R3K2R w KQkq - 0 2"),
             ("e5g6", "r3k2r/p1ppqpb1/bn2pnN1/3P1Q2/1p2P3/2N5/PPPBBPpP/R3K2R b KQkq - 0 2"),
@@ -344,7 +344,7 @@ mod tests {
     #[test]
     fn status_checkmate() {
         let mut board: Board = "8/5p2/5rk1/2R1Q1pp/8/6P1/5PK1/8 b - - 3 69".parse().unwrap();
-        const MOVES: &'static [&'static str] = &[
+        const MOVES: &[&str] = &[
             "f6e6",
             "e5g5",
             "g6h7",
@@ -366,7 +366,7 @@ mod tests {
     #[test]
     fn status_stalemate() {
         let mut board = Board::default();
-        const MOVES: &'static [&'static str] = &[
+        const MOVES: &[&str] = &[
             "c2c4",
             "h7h5",
             "h2h4",

@@ -22,6 +22,7 @@ impl IntoIterator for PieceMoves {
     }
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl PieceMoves {
     pub fn len(&self) -> usize {
         const PROMOTION_MASK: BitBoard = BitBoard(
@@ -35,6 +36,10 @@ impl PieceMoves {
         };
         moves as usize
     }
+
+    pub fn empty(&self) -> bool {
+        self.to == BitBoard::EMPTY
+    }
 }
 
 pub struct PieceMovesIter {
@@ -47,7 +52,7 @@ impl Iterator for PieceMovesIter {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(to) = self.moves.to.next_square() {
+        if let Some(to) = self.moves.to.next_square() {
             let is_promotion = self.moves.piece == Piece::Pawn &&
                 matches!(to.rank(), Rank::First | Rank::Eighth);
             let promotion = if is_promotion {
@@ -69,13 +74,14 @@ impl Iterator for PieceMovesIter {
                 self.moves.to.next();
                 None
             };
-            return Some(Move {
+            Some(Move {
                 from: self.moves.from,
                 to,
                 promotion
             })
+        } else {
+            None
         }
-        None
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {

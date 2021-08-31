@@ -3,7 +3,7 @@ use std::time::Duration;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use cozy_chess::Board;
 
-const POSITIONS: &[&'static str] = &[
+const POSITIONS: &[&str] = &[
     "Q7/5Q2/8/8/3k4/6P1/6BP/7K b - - 0 67",
     "r4rk1/p4ppp/1q2p3/2n1P3/2p5/3bRNP1/1P3PBP/R2Q2K1 b - - 0 24",
     "r1bq1rk1/pp3ppp/2nbpn2/3p4/3P4/1PN1PN2/1BP1BPPP/R2Q1RK1 b - - 2 10",
