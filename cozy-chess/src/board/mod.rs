@@ -136,28 +136,33 @@ impl Board {
     pub fn null_move(&self) -> Option<Board> {
         if self.checkers.empty() {
             let mut board = self.clone();
+            board.halfmove_clock += 1;
+            if board.side_to_move() == Color::Black {
+                board.fullmove_number += 1;
+            }
+            board.inner.toggle_side_to_move();
+            board.inner.set_en_passant(None);
+
+            board.pinned = BitBoard::EMPTY;
             let color = board.side_to_move();
-            let their_king = board.king(color);
-            let our_attackers = board.colors(color) & (
-                (get_bishop_rays(their_king) & (
+            let our_king = board.king(color);
+            let their_attackers = board.colors(!color) & (
+                (get_bishop_rays(our_king) & (
                     board.pieces(Piece::Bishop) |
                     board.pieces(Piece::Queen)
                 )) |
-                (get_rook_rays(their_king) & (
+                (get_rook_rays(our_king) & (
                     board.pieces(Piece::Rook) |
                     board.pieces(Piece::Queen)
                 ))
             );
     
-            for square in our_attackers {
-                let between = get_between_rays(square, their_king) & board.occupied();
+            for square in their_attackers {
+                let between = get_between_rays(square, our_king) & board.occupied();
                 if between.popcnt() == 1 {
                     board.pinned |= between;
                 }
             }
-
-            board.inner.toggle_side_to_move();
-            board.inner.set_en_passant(None);
             Some(board)
         } else {
             None
