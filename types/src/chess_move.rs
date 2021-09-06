@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crate::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Move {
     pub from: Square,
     pub to: Square,
