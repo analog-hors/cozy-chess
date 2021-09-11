@@ -53,10 +53,15 @@ impl Board {
 
         let color = self.side_to_move();
         if let Some(en_passant) = self.en_passant() {
+            let en_passant_square = Square::new(
+                en_passant,
+                Rank::Third.relative_to(!color)
+            );
             let en_passant_pawn = Square::new(
                 en_passant,
                 Rank::Fourth.relative_to(!color)
             );
+            soft_assert!(!self.occupied().has(en_passant_square));
             soft_assert!((self.colors(!color) & self.pieces(Piece::Pawn)).has(en_passant_pawn));
         }
 
