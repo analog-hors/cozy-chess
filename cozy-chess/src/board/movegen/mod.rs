@@ -295,6 +295,7 @@ impl Board {
     ///To retrieve the moves, a `listener` callback must be passed that receives compact [`PieceMoves`].
     ///This does *not* guarantee that each [`PieceMoves`] value has a unique `from` square.
     ///However, each [`PieceMoves`] value will have at least one move.
+    ///The listener will be called a maximum of 18 times.
     ///The listener can abort the movegen early by returning `true`.
     ///In this case, this function also returns `true`.
     pub fn generate_moves(&self, listener: &mut impl FnMut(PieceMoves) -> bool) -> bool {
