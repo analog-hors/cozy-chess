@@ -9,11 +9,14 @@ macro_rules! simple_enum {
         $vis enum $name {
             $($variant),*
         }
-        
+
         impl $name {
+            #[doc = concat!("The number of [`", stringify!($name), "`] variants.")]
             pub const NUM: usize = [$(Self::$variant),*].len();
+            #[doc = concat!("An array of all [`", stringify!($name), "`] variants.")]
             pub const ALL: [Self; Self::NUM] = [$(Self::$variant),*];
-    
+
+            #[doc = concat!("Checked version of [`", stringify!($name), "::index`].")]
             #[inline(always)]
             pub const fn try_index(index: usize) -> Option<Self> {
                 $(#[allow(non_upper_case_globals, unused)]
@@ -25,11 +28,13 @@ macro_rules! simple_enum {
                 }
             }
 
+            #[doc = concat!("Convert an index to a [`", stringify!($name), "`].")]
             #[inline(always)]
             pub fn index(index: usize) -> Self {
                 Self::try_index(index).unwrap_or_else(|| panic!("Index {} is out of range.", index))
             }
 
+            #[doc = concat!("`const` version of [`", stringify!($name), "::index`].")]
             #[inline(always)]
             pub const fn index_const(index: usize) -> Self {
                 if let Some(value) = Self::try_index(index) {
@@ -57,6 +62,7 @@ macro_rules! enum_char_conv {
             }
         }
 
+        #[doc = concat!("An error while parsing a [`", stringify!($enum), "`].")]
         #[derive(Debug, Clone, Copy)]
         pub enum $error {
             InvalidValue
@@ -78,7 +84,7 @@ macro_rules! enum_char_conv {
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
                 use std::convert::TryInto;
-                
+
                 let mut chars = s.chars();
                 let c = chars.next().ok_or($error::InvalidValue)?;
                 if chars.next().is_none() {

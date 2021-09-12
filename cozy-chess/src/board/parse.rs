@@ -13,6 +13,8 @@ impl Board {
     /// # use cozy_chess::*;
     /// let mut board = Board::default();
     /// assert!(board.validity_check());
+    /// let _ = board.try_play_unchecked("e1e8".parse().unwrap());
+    /// assert!(!board.validity_check());
     /// ```
     pub fn validity_check(&self) -> bool {
         macro_rules! soft_assert {

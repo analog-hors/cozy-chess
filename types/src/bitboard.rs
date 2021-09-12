@@ -1,5 +1,7 @@
 use crate::*;
 
+/// A [bitboard](https://www.chessprogramming.org/Bitboards).
+/// This represents some set of squares on a chessboard.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
 pub struct BitBoard(pub u64);
 
@@ -116,32 +118,132 @@ impl std::ops::Not for BitBoard {
 }
 
 impl BitBoard {
+    /// An empty [`BitBoard`].
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(BitBoard::EMPTY, bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// });
+    /// ```
     pub const EMPTY: Self = Self(0);
 
-    pub const EDGES: BitBoard = BitBoard(
-        Rank::First.bitboard().0 |
-        Rank::Eighth.bitboard().0 |
-        File::A.bitboard().0 |
-        File::H.bitboard().0
-    );
+    /// The edges on the board.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(BitBoard::EDGES, bitboard! {
+    ///     X X X X X X X X
+    ///     X . . . . . . X
+    ///     X . . . . . . X
+    ///     X . . . . . . X
+    ///     X . . . . . . X
+    ///     X . . . . . . X
+    ///     X . . . . . . X
+    ///     X X X X X X X X
+    /// });
+    /// ```
+    pub const EDGES: BitBoard = bitboard! {
+        X X X X X X X X
+        X . . . . . . X
+        X . . . . . . X
+        X . . . . . . X
+        X . . . . . . X
+        X . . . . . . X
+        X . . . . . . X
+        X X X X X X X X
+    };
 
-    ///Count the number of squares in the bitboard
+    /// Count the number of squares in the bitboard
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(BitBoard::EMPTY.popcnt(), 0);
+    /// let bitboard = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// assert_eq!(bitboard.popcnt(), 12);
+    /// ```
     #[inline(always)]
     pub const fn popcnt(self) -> u32 {
         self.0.count_ones()
     }
 
+    /// Check if a [`Square`] is set.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// let bitboard = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// assert!(bitboard.has(Square::C3));
+    /// assert!(!bitboard.has(Square::B2));
+    /// ```
     #[inline(always)]
     pub const fn has(self, square: Square) -> bool {
         self.0 & square.bitboard().0 != BitBoard::EMPTY.0
     }
 
+    /// Checks if the [`BitBoard`] is empty.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert!(BitBoard::EMPTY.empty());
+    /// let bitboard = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// assert!(!bitboard.empty());
+    /// ```
     #[inline(always)]
     pub const fn empty(self) -> bool {
         self.0 == BitBoard::EMPTY.0
     }
 
-    ///Grabs the least significant square, if it exists.
+    /// Grabs the least significant square, if it exists.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert!(BitBoard::EMPTY.next_square().is_none());
+    /// let bitboard = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// assert_eq!(bitboard.next_square(), Some(Square::C3));
+    /// ```
     #[inline(always)]
     pub const fn next_square(self) -> Option<Square> {
         Square::try_index(self.0.trailing_zeros() as usize)
@@ -173,7 +275,7 @@ impl ExactSizeIterator for BitBoard {
     }
 }
 
-/// BitBoard literal macro.
+/// [`BitBoard`] literal macro.
 /// ```
 /// # use cozy_chess_types::*;
 /// let bb = bitboard! {
@@ -246,9 +348,9 @@ impl std::fmt::Debug for BitBoard {
             for &file in &File::ALL {
                 let square = Square::new(file, rank).bitboard();
                 if *self & square != Self::EMPTY {
-                    write!(f, "X")?;
+                    write!(f, "X ")?;
                 } else {
-                    write!(f, ".")?;
+                    write!(f, ". ")?;
                 }
             }
             writeln!(f)?;

@@ -4,6 +4,7 @@ use std::str::FromStr;
 use crate::*;
 
 crate::helpers::simple_enum! {
+    /// A square on a chessboard.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
     pub enum Square {
         A1, B1, C1, D1, E1, F1, G1, H1,
@@ -17,6 +18,7 @@ crate::helpers::simple_enum! {
     }
 }
 
+/// An error while parsing a [`Square`].
 #[derive(Debug, Clone, Copy)]
 pub enum SquareParseError {
     InvalidSquare

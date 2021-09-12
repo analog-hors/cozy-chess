@@ -2,13 +2,18 @@ use std::str::FromStr;
 
 use crate::*;
 
+/// A chess move.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Move {
+    /// The square to move the piece from.
     pub from: Square,
+    /// The square to move the piece to.
     pub to: Square,
+    /// The promotion piece, if it exists.
     pub promotion: Option<Piece>
 }
 
+/// An error while parsing a [`Move`].
 #[derive(Debug, Clone, Copy)]
 pub enum MoveParseError {
     InvalidMove

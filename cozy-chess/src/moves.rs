@@ -334,7 +334,7 @@ pub const fn get_king_moves(square: Square) -> BitBoard {
     TABLE[square as usize]
 }
 
-/// Get the pawn attacks for a pawn on some square
+/// Get the pawn attacks for a pawn on some square.
 /// ```
 /// # use cozy_chess::*;
 /// let attacks = get_pawn_attacks(Square::D3, Color::White);

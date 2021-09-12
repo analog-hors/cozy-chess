@@ -312,10 +312,17 @@ impl Board {
     /// assert_eq!(total_moves, 20);
     /// ```
     pub fn generate_moves(&self, listener: &mut impl FnMut(PieceMoves) -> bool) -> bool {
-        match self.checkers().popcnt() {
+        self.try_generate_moves(listener).expect("Invalid board!")
+    }
+
+    pub fn try_generate_moves(&self, listener: &mut impl FnMut(PieceMoves) -> bool) -> Result<bool, BoardError> {
+        if self.try_king(self.side_to_move()).is_err() {
+            return Err(BoardError::InvalidBoard);
+        }
+        Ok(match self.checkers().popcnt() {
             0 => self.add_all_legals::<_, false>(listener),
             1 => self.add_all_legals::<_, true>(listener),
             _ => self.add_king_legals::<_, true>(listener)
-        }
+        })
     }
 }

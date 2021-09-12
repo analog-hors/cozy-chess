@@ -1,6 +1,7 @@
 use crate::*;
 
 crate::helpers::simple_enum! {
+    /// A file on a chessboard
     #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
     pub enum File {
         A,

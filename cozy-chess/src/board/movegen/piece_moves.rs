@@ -1,11 +1,14 @@
 use crate::*;
 
-///A compact structure representing multiple moves for a piece on the board.
-///Iterate it to unpack its moves.
+/// A compact structure representing multiple moves for a piece on the board.
+/// Iterate it to unpack its moves.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PieceMoves {
+    /// The [`Piece`] that is moved.
     pub piece: Piece,
+    /// The square to move the piece from.
     pub from: Square,
+    /// The possible destination squares.
     pub to: BitBoard
 }
 
@@ -24,6 +27,7 @@ impl IntoIterator for PieceMoves {
 
 #[allow(clippy::len_without_is_empty)]
 impl PieceMoves {
+    /// Get the number of [`Move`]s.
     pub fn len(&self) -> usize {
         const PROMOTION_MASK: BitBoard = BitBoard(
             Rank::First.bitboard().0 | Rank::Eighth.bitboard().0
@@ -37,11 +41,13 @@ impl PieceMoves {
         moves as usize
     }
 
+    /// Check if there are no [`Move`]s.
     pub fn empty(&self) -> bool {
         self.to == BitBoard::EMPTY
     }
 }
 
+///Iterator for [`PieceMoves`].
 pub struct PieceMovesIter {
     moves: PieceMoves,
     promotion: u8

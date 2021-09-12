@@ -7,6 +7,7 @@ mod zobrist;
 use zobrist::*;
 pub use movegen::*;
 
+/// The current state of the game.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum GameStatus {
     Won,
@@ -14,6 +15,13 @@ pub enum GameStatus {
     Ongoing
 }
 
+/// An error that may occur while handling a [`Board`].
+#[derive(Debug, Clone, Copy)]
+pub enum BoardError {
+    InvalidBoard
+}
+
+/// A chessboard.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Board {
     inner: ZobristBoard,
@@ -268,6 +276,8 @@ impl Board {
     }
 
     /// Get the king square of some side. Panic if there is no king.
+    /// # Panics
+    /// Panic if there is no king.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -276,12 +286,20 @@ impl Board {
     /// ```
     #[inline(always)]
     pub fn king(&self, color: Color) -> Square {
-        (self.pieces(Piece::King) & self.colors(color)).next_square().unwrap()
+        self.try_king(color).expect("No king was found.")
+    }
+
+    #[inline(always)]
+    fn try_king(&self, color: Color) -> Result<Square, BoardError> {
+        (self.pieces(Piece::King) & self.colors(color))
+            .next_square().ok_or(BoardError::InvalidBoard)
     }
 
     /// Get the status of the game.
     /// Note that this game may still be drawn from threefold repetition.
     /// If the game is won, the loser is the current side to move.
+    /// # Panics
+    /// This may panic if the board is invalid.
     /// # Examples
     /// ## Checkmate
     /// ```
@@ -342,6 +360,8 @@ impl Board {
 
     /// Attempt to play a [null move](https://www.chessprogramming.org/Null_Move),
     /// returning a new board if successful.
+    /// # Panics
+    /// This may panic if the board is invalid.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -356,7 +376,12 @@ impl Board {
     /// assert!(board.null_move().is_none());
     /// ```
     pub fn null_move(&self) -> Option<Board> {
-        if self.checkers.empty() {
+        self.try_null_move().expect("Invalid board!")
+    }
+
+    /// Non-panicking version of [`Board::null_move`].
+    pub fn try_null_move(&self) -> Result<Option<Board>, BoardError> {
+        Ok(if self.checkers.empty() {
             let mut board = self.clone();
             board.halfmove_clock += 1;
             if board.side_to_move() == Color::Black {
@@ -367,7 +392,7 @@ impl Board {
 
             board.pinned = BitBoard::EMPTY;
             let color = board.side_to_move();
-            let our_king = board.king(color);
+            let our_king = board.try_king(color)?;
             let their_attackers = board.colors(!color) & (
                 (get_bishop_rays(our_king) & (
                     board.pieces(Piece::Bishop) |
@@ -388,10 +413,13 @@ impl Board {
             Some(board)
         } else {
             None
-        }
+        })
     }
 
     /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
+    /// # Panics
+    /// This may panic if the board is invalid.
+    /// See [`Board::try_play_unchecked`] for a non-panicking variant.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -404,15 +432,20 @@ impl Board {
     /// assert_eq!(format!("{}", board), EXPECTED);
     /// ```
     pub fn play_unchecked(&mut self, mv: Move) {
+        self.try_play_unchecked(mv).expect("Invalid board!");
+    }
+
+    ///Non-panicking version of [`Board::play_unchecked`].
+    pub fn try_play_unchecked(&mut self, mv: Move) -> Result<(), BoardError> {
         self.pinned = BitBoard::EMPTY;
         self.checkers = BitBoard::EMPTY;
 
-        let moved = self.piece_on(mv.from).unwrap();
+        let moved = self.piece_on(mv.from).ok_or(BoardError::InvalidBoard)?;
         let victim = self.piece_on(mv.to);
         let color = self.inner.side_to_move();
         let from_bb = mv.from.bitboard();
         let to_bb = mv.to.bitboard();
-        let their_king = self.king(!color);
+        let their_king = self.try_king(!color)?;
         let our_back_rank = Rank::First.relative_to(color);
         let their_back_rank = Rank::First.relative_to(!color);
         //Castling move encoded as king captures rook.
@@ -537,6 +570,8 @@ impl Board {
         }
         self.inner.set_en_passant(new_en_passant);
         self.inner.toggle_side_to_move();
+
+        Ok(())
     }
 }
 

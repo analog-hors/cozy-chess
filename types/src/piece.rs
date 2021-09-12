@@ -1,4 +1,5 @@
 crate::helpers::simple_enum! {
+    /// A chess piece.
     #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
     pub enum Piece {
         Pawn,
