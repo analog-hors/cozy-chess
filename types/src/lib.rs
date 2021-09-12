@@ -1,4 +1,4 @@
-//! # For internal use within `cozy-chess` only!
+#![doc = include_str!("../README.md")]
 
 mod helpers;
 
