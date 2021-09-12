@@ -349,7 +349,7 @@ impl Board {
     pub fn status(&self) -> GameStatus {
         if self.halfmove_clock() >= 100 {
             GameStatus::Drawn
-        } else if self.generate_moves(&mut |_| true) {
+        } else if self.generate_moves(|_| true) {
             GameStatus::Ongoing
         } else if self.checkers().is_empty() {
             GameStatus::Drawn

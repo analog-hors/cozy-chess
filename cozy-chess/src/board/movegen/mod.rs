@@ -303,7 +303,7 @@ impl Board {
     /// # use cozy_chess::*;
     /// let board = Board::default();
     /// let mut total_moves = 0;
-    /// board.generate_moves(&mut |moves| {
+    /// board.generate_moves(|moves| {
     ///     for _mv in moves {
     ///         total_moves += 1;
     ///     }
@@ -311,18 +311,18 @@ impl Board {
     /// });
     /// assert_eq!(total_moves, 20);
     /// ```
-    pub fn generate_moves(&self, listener: &mut impl FnMut(PieceMoves) -> bool) -> bool {
+    pub fn generate_moves(&self, listener: impl FnMut(PieceMoves) -> bool) -> bool {
         self.try_generate_moves(listener).expect("Invalid board!")
     }
 
-    pub fn try_generate_moves(&self, listener: &mut impl FnMut(PieceMoves) -> bool) -> Result<bool, BoardError> {
+    pub fn try_generate_moves(&self, mut listener: impl FnMut(PieceMoves) -> bool) -> Result<bool, BoardError> {
         if self.try_king(self.side_to_move()).is_err() {
             return Err(BoardError::InvalidBoard);
         }
         Ok(match self.checkers().popcnt() {
-            0 => self.add_all_legals::<_, false>(listener),
-            1 => self.add_all_legals::<_, true>(listener),
-            _ => self.add_king_legals::<_, true>(listener)
+            0 => self.add_all_legals::<_, false>(&mut listener),
+            1 => self.add_all_legals::<_, true>(&mut listener),
+            _ => self.add_king_legals::<_, true>(&mut listener)
         })
     }
 }

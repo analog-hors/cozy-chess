@@ -5,13 +5,13 @@ fn perft(board: &Board, depth: u8) -> u64 {
     match depth {
         0 => nodes += 1,
         1 => {
-            board.generate_moves(&mut |moves| {
+            board.generate_moves(|moves| {
                 nodes += moves.len() as u64;
                 false
             });
         }
         _ => {
-            board.generate_moves(&mut |moves| {
+            board.generate_moves(|moves| {
                 for mv in moves {
                     let mut board = board.clone();
                     board.play_unchecked(mv);
