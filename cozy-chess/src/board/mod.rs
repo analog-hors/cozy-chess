@@ -351,7 +351,7 @@ impl Board {
             GameStatus::Drawn
         } else if self.generate_moves(&mut |_| true) {
             GameStatus::Ongoing
-        } else if self.checkers().empty() {
+        } else if self.checkers().is_empty() {
             GameStatus::Drawn
         } else {
             GameStatus::Won
@@ -381,7 +381,7 @@ impl Board {
 
     /// Non-panicking version of [`Board::null_move`].
     pub fn try_null_move(&self) -> Result<Option<Board>, BoardError> {
-        Ok(if self.checkers.empty() {
+        Ok(if self.checkers.is_empty() {
             let mut board = self.clone();
             board.halfmove_clock += 1;
             if board.side_to_move() == Color::Black {
@@ -516,8 +516,8 @@ impl Board {
                         let en_passant = self.inner.en_passant().map(|ep| {
                             Square::new(ep, Rank::Third.relative_to(!color))
                         });
-                        if !(from_bb & PAWN_DOUBLE_MOVE_FROM).empty()
-                            && !(to_bb & PAWN_DOUBLE_MOVE_TO).empty() {
+                        if !(from_bb & PAWN_DOUBLE_MOVE_FROM).is_empty()
+                            && !(to_bb & PAWN_DOUBLE_MOVE_TO).is_empty() {
                             //Double move, update en passant.
                             new_en_passant = Some(mv.to.file());
                         } else if Some(mv.to) == en_passant {

@@ -29,10 +29,10 @@ impl Board {
         let mut occupied = BitBoard::EMPTY;
         for piece in Piece::ALL {
             let pieces = self.pieces(piece);
-            soft_assert!((pieces & occupied).empty());
+            soft_assert!((pieces & occupied).is_empty());
             occupied |= pieces;
         }
-        soft_assert!((self.colors(Color::White) & self.colors(Color::Black)).empty());
+        soft_assert!((self.colors(Color::White) & self.colors(Color::Black)).is_empty());
         soft_assert!(occupied == self.occupied());
         
         for &color in &Color::ALL {
@@ -42,7 +42,7 @@ impl Board {
             soft_assert!((pieces & self.pieces(Piece::Pawn)).popcnt() <= 8);
 
             let back_rank = Rank::First.relative_to(color);
-            soft_assert!((pieces & self.pieces(Piece::Pawn) & back_rank.bitboard()).empty());
+            soft_assert!((pieces & self.pieces(Piece::Pawn) & back_rank.bitboard()).is_empty());
 
             let rights = self.castle_rights(color);
             let our_rooks = pieces & self.pieces(Piece::Rook);
@@ -76,7 +76,7 @@ impl Board {
 
         let (our_checkers, _) = self.calculate_checkers_and_pins(!color);
         //Opponent can't be in check while it's our turn
-        soft_assert!(our_checkers.empty());
+        soft_assert!(our_checkers.is_empty());
 
         let (checkers, pinned) = self.calculate_checkers_and_pins(color);
         soft_assert!(self.checkers() == checkers);

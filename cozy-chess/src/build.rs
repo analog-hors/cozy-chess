@@ -7,13 +7,13 @@ use cozy_chess_types::*;
 
 fn main() {
     let mut table = [BitBoard::EMPTY; 87988];
-    write_moves(&mut table, &BISHOP_MAGICS, BISHOP_INDEX_BITS, &[
+    write_moves(&mut table, BISHOP_MAGICS, BISHOP_INDEX_BITS, &[
         SquareDelta(1, 1),
         SquareDelta(1, -1),
         SquareDelta(-1, -1),
         SquareDelta(-1, 1)
     ]);
-    write_moves(&mut table, &ROOK_MAGICS, ROOK_INDEX_BITS, &[
+    write_moves(&mut table, ROOK_MAGICS, ROOK_INDEX_BITS, &[
         SquareDelta(1, 0),
         SquareDelta(0, -1),
         SquareDelta(-1, 0),
@@ -54,7 +54,7 @@ fn write_moves(table: &mut [BitBoard; 87988], magics: &[BlackMagicEntry; Square:
             //Carry-Rippler trick that enumerates all subsets of the mask, getting us all blockers.
             //https://www.chessprogramming.org/Traversing_Subsets_of_a_Set#All_Subsets_of_any_Set
             blockers = blockers.wrapping_sub(mask) & mask;
-            if blockers.empty() {
+            if blockers.is_empty() {
                 break;
             }
         }

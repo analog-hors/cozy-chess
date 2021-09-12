@@ -29,7 +29,7 @@ include!(concat!(env!("OUT_DIR"), "/sliding_moves.rs"));
 /// ```
 pub const fn get_rook_moves(square: Square, blockers: BitBoard) -> BitBoard {
     let index = get_magic_index(
-        &ROOK_MAGICS,
+        ROOK_MAGICS,
         ROOK_INDEX_BITS,
         blockers,
         square
@@ -64,7 +64,7 @@ pub const fn get_rook_moves(square: Square, blockers: BitBoard) -> BitBoard {
 /// ```
 pub const fn get_bishop_moves(square: Square, blockers: BitBoard) -> BitBoard {
     let index = get_magic_index(
-        &BISHOP_MAGICS,
+        BISHOP_MAGICS,
         BISHOP_INDEX_BITS,
         blockers,
         square
@@ -429,7 +429,7 @@ pub const fn get_pawn_quiets(square: Square, color: Color, blockers: BitBoard) -
         square_bb.0 >> File::NUM
     });
     moves.0 &= !blockers.0;
-    if !moves.empty() && Rank::Second.relative_to(color).bitboard().has(square) {
+    if !moves.is_empty() && Rank::Second.relative_to(color).bitboard().has(square) {
         moves.0 |= if let Color::White = color {
             moves.0 << File::NUM
         } else {

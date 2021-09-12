@@ -76,7 +76,7 @@ impl Board {
 
         for piece in pieces & !pinned {
             let moves = P::pseudo_legals(piece, blockers) & target_squares;
-            if !moves.empty() {
+            if !moves.is_empty() {
                 abort_if!(listener(PieceMoves {
                     piece: P::PIECE,
                     from: piece,
@@ -90,7 +90,7 @@ impl Board {
                 //If we're not in check, we can still slide along the pinned ray.
                 let target_squares = target_squares & get_line_rays(our_king, piece);
                 let moves = P::pseudo_legals(piece, blockers) & target_squares;
-                if !moves.empty() {
+                if !moves.is_empty() {
                     abort_if!(listener(PieceMoves {
                         piece: P::PIECE,
                         from: piece,
@@ -112,7 +112,7 @@ impl Board {
 
         for piece in pieces & !pinned {
             let moves = get_knight_moves(piece) & target_squares;
-            if !moves.empty() {
+            if !moves.is_empty() {
                 abort_if!(listener(PieceMoves {
                     piece: PIECE,
                     from: piece,
@@ -139,7 +139,7 @@ impl Board {
                 get_pawn_quiets(piece, color, blockers) |
                 (get_pawn_attacks(piece, color) & their_pieces)
             ) & target_squares;
-            if !moves.empty() {
+            if !moves.is_empty() {
                 abort_if!(listener(PieceMoves {
                     piece: PIECE,
                     from: piece,
@@ -156,7 +156,7 @@ impl Board {
                     get_pawn_quiets(piece, color, blockers) |
                     (get_pawn_attacks(piece, color) & their_pieces)
                 ) & target_squares;
-                if !moves.empty() {
+                if !moves.is_empty() {
                     abort_if!(listener(PieceMoves {
                         piece: PIECE,
                         from: piece,
@@ -185,12 +185,12 @@ impl Board {
                     ^ piece.bitboard()
                     | dest.bitboard();
                 //First test a basic ray to prevent an expensive magic lookup
-                let on_ray = !(get_bishop_rays(our_king) & their_bishops).empty();
-                if on_ray && !(get_bishop_moves(our_king, blockers) & their_bishops).empty() {
+                let on_ray = !(get_bishop_rays(our_king) & their_bishops).is_empty();
+                if on_ray && !(get_bishop_moves(our_king, blockers) & their_bishops).is_empty() {
                     continue;
                 }
-                let on_ray = !(get_rook_rays(our_king) & their_rooks).empty();
-                if on_ray && !(get_rook_moves(our_king, blockers) & their_rooks).empty() {
+                let on_ray = !(get_rook_rays(our_king) & their_rooks).is_empty();
+                if on_ray && !(get_rook_moves(our_king, blockers) & their_rooks).is_empty() {
                     continue;
                 }
                 abort_if!(listener(PieceMoves {
@@ -207,7 +207,7 @@ impl Board {
     fn king_safe_on(&self, square: Square) -> bool {
         macro_rules! short_circuit {
             ($($attackers:expr),*) => {
-                $(if !$attackers.empty() {
+                $(if !$attackers.is_empty() {
                     return false;
                 })*
                 true
@@ -251,7 +251,7 @@ impl Board {
             let back_rank = Rank::First.relative_to(color);
             if let Some(rook) = rights.short {
                 let rook = Square::new(rook, back_rank);
-                if !pinned.has(rook) && (blockers & get_between_rays(our_king, rook)).empty() {
+                if !pinned.has(rook) && (blockers & get_between_rays(our_king, rook)).is_empty() {
                     let mut path = get_between_rays(our_king, Square::new(File::H, back_rank));
                     if path.all(|square| self.king_safe_on(square)) {
                         moves |= rook.bitboard();
@@ -260,7 +260,7 @@ impl Board {
             }
             if let Some(rook) = rights.long {
                 let rook = Square::new(rook, back_rank);
-                if !pinned.has(rook) && (blockers & get_between_rays(our_king, rook)).empty() {
+                if !pinned.has(rook) && (blockers & get_between_rays(our_king, rook)).is_empty() {
                     let mut path = get_between_rays(our_king, Square::new(File::B, back_rank));
                     if path.all(|square| self.king_safe_on(square)) {
                         moves |= rook.bitboard();
@@ -268,7 +268,7 @@ impl Board {
                 }
             }
         }
-        if !moves.empty() {
+        if !moves.is_empty() {
             abort_if!(listener(PieceMoves {
                 piece: PIECE,
                 from: our_king,

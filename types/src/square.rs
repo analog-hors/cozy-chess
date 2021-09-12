@@ -63,7 +63,7 @@ impl Square {
 
     #[inline(always)]
     pub const fn file(self) -> File {
-        File::index_const(self as usize & 0b000_111)
+        File::index_const(self as usize & 0b000111)
     }
 
     ///Get a bitboard with this square set

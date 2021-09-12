@@ -209,7 +209,7 @@ impl BitBoard {
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
-    /// assert!(BitBoard::EMPTY.empty());
+    /// assert!(BitBoard::EMPTY.is_empty());
     /// let bitboard = bitboard! {
     ///     . . . . . . . .
     ///     . . . . . . . .
@@ -220,10 +220,10 @@ impl BitBoard {
     ///     . . . . . . . .
     ///     . . . . . . . .
     /// };
-    /// assert!(!bitboard.empty());
+    /// assert!(!bitboard.is_empty());
     /// ```
     #[inline(always)]
-    pub const fn empty(self) -> bool {
+    pub const fn is_empty(self) -> bool {
         self.0 == BitBoard::EMPTY.0
     }
 

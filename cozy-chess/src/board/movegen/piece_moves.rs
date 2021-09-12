@@ -25,7 +25,6 @@ impl IntoIterator for PieceMoves {
     }
 }
 
-#[allow(clippy::len_without_is_empty)]
 impl PieceMoves {
     /// Get the number of [`Move`]s.
     pub fn len(&self) -> usize {
@@ -42,7 +41,7 @@ impl PieceMoves {
     }
 
     /// Check if there are no [`Move`]s.
-    pub fn empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.to == BitBoard::EMPTY
     }
 }
