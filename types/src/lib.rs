@@ -1,3 +1,5 @@
+//! # For internal use within `cozy-chess` only!
+
 mod helpers;
 
 pub mod color;

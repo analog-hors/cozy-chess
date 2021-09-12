@@ -290,14 +290,27 @@ impl Board {
         false
     }
 
-    ///Generate all legal moves given a position in no particular order.
-    ///All guarantees made by this function are only guaranteed if the board is valid.
-    ///To retrieve the moves, a `listener` callback must be passed that receives compact [`PieceMoves`].
-    ///This does *not* guarantee that each [`PieceMoves`] value has a unique `from` square.
-    ///However, each [`PieceMoves`] value will have at least one move.
-    ///The listener will be called a maximum of 18 times.
-    ///The listener can abort the movegen early by returning `true`.
-    ///In this case, this function also returns `true`.
+    /// Generate all legal moves given a position in no particular order.
+    /// All guarantees made by this function are only guaranteed if the board is valid.
+    /// To retrieve the moves, a `listener` callback must be passed that receives compact [`PieceMoves`].
+    /// This does *not* guarantee that each [`PieceMoves`] value has a unique `from` square.
+    /// However, each [`PieceMoves`] value will have at least one move.
+    /// The listener will be called a maximum of 18 times.
+    /// The listener can abort the movegen early by returning `true`.
+    /// In this case, this function also returns `true`.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board = Board::default();
+    /// let mut total_moves = 0;
+    /// board.generate_moves(&mut |moves| {
+    ///     for _mv in moves {
+    ///         total_moves += 1;
+    ///     }
+    ///     false
+    /// });
+    /// assert_eq!(total_moves, 20);
+    /// ```
     pub fn generate_moves(&self, listener: &mut impl FnMut(PieceMoves) -> bool) -> bool {
         match self.checkers().popcnt() {
             0 => self.add_all_legals::<_, false>(listener),

@@ -2,6 +2,31 @@ use crate::*;
 
 include!(concat!(env!("OUT_DIR"), "/sliding_moves.rs"));
 
+/// Get the moves for a rook on some square.
+/// ```
+/// # use cozy_chess::*;
+/// let blockers = bitboard! {
+///     . . . X . . . .
+///     . . . . . . . .
+///     . . . X . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . X
+///     . . . . . X . .
+///     . . . . . . . .
+/// };
+/// let moves = get_rook_moves(Square::D3, blockers);
+/// assert_eq!(moves, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . X . . . .
+///     . . . X . . . .
+///     . . . X . . . .
+///     X X X . X X X X
+///     . . . X . . . .
+///     . . . X . . . .
+/// });
+/// ```
 pub const fn get_rook_moves(square: Square, blockers: BitBoard) -> BitBoard {
     let index = get_magic_index(
         &ROOK_MAGICS,
@@ -12,6 +37,31 @@ pub const fn get_rook_moves(square: Square, blockers: BitBoard) -> BitBoard {
     BitBoard(SLIDING_MOVES[index])
 }
 
+/// Get the moves for a bishop on some square.
+/// ```
+/// # use cozy_chess::*;
+/// let blockers = bitboard! {
+///     . . . . . . . .
+///     . . . . . . . X
+///     . . X . . . . .
+///     . . . . . X . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . X . .
+/// };
+/// let moves = get_bishop_moves(Square::D3, blockers);
+/// assert_eq!(moves, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     X . . . . . . .
+///     . X . . . X . .
+///     . . X . X . . .
+///     . . . . . . . .
+///     . . X . X . . .
+///     . X . . . X . .
+/// });
+/// ```
 pub const fn get_bishop_moves(square: Square, blockers: BitBoard) -> BitBoard {
     let index = get_magic_index(
         &BISHOP_MAGICS,
@@ -22,6 +72,21 @@ pub const fn get_bishop_moves(square: Square, blockers: BitBoard) -> BitBoard {
     BitBoard(SLIDING_MOVES[index])
 }
 
+/// Get the rays for a rook on some square.
+/// ```
+/// # use cozy_chess::*;
+/// let rays = get_rook_rays(Square::D3);
+/// assert_eq!(rays, bitboard! {
+///     . . . X . . . .
+///     . . . X . . . .
+///     . . . X . . . .
+///     . . . X . . . .
+///     . . . X . . . .
+///     X X X . X X X X
+///     . . . X . . . .
+///     . . . X . . . .
+/// });
+/// ```
 pub const fn get_rook_rays(square: Square) -> BitBoard {
     const TABLE: [BitBoard; Square::NUM] = {
         let mut table = [BitBoard::EMPTY; Square::NUM];
@@ -36,6 +101,21 @@ pub const fn get_rook_rays(square: Square) -> BitBoard {
     TABLE[square as usize]
 }
 
+/// Get the rays for a bishop on some square.
+/// ```
+/// # use cozy_chess::*;
+/// let rays = get_bishop_rays(Square::D3);
+/// assert_eq!(rays, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . X
+///     X . . . . . X .
+///     . X . . . X . .
+///     . . X . X . . .
+///     . . . . . . . .
+///     . . X . X . . .
+///     . X . . . X . .
+/// });
+/// ```
 pub const fn get_bishop_rays(square: Square) -> BitBoard {
     const fn get_bishop_rays(square: Square) -> BitBoard {
         let mut rays = BitBoard::EMPTY.0;
@@ -63,7 +143,21 @@ pub const fn get_bishop_rays(square: Square) -> BitBoard {
     TABLE[square as usize]
 }
 
-///Get all squares between two squares, if reachable via a ray.
+/// Get all squares between two squares, if reachable via a ray.
+/// ```
+/// # use cozy_chess::*;
+/// let rays = get_between_rays(Square::B4, Square::G4);
+/// assert_eq!(rays, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . X X X X . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+/// });
+/// ```
 pub const fn get_between_rays(from: Square, to: Square) -> BitBoard {
     const fn get_between_rays(from: Square, to: Square) -> BitBoard {
         let blockers = BitBoard(from.bitboard().0 ^ to.bitboard().0);
@@ -96,7 +190,21 @@ pub const fn get_between_rays(from: Square, to: Square) -> BitBoard {
     TABLE[from as usize][to as usize]
 }
 
-///Get a ray on the board that passes through both squares, if it exists.
+/// Get a ray on the board that passes through both squares, if it exists.
+/// ```
+/// # use cozy_chess::*;
+/// let rays = get_line_rays(Square::D2, Square::G5);
+/// assert_eq!(rays, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . X
+///     . . . . . . X .
+///     . . . . . X . .
+///     . . . . X . . .
+///     . . . X . . . .
+///     . . X . . . . .
+/// });
+/// ```
 pub const fn get_line_rays(from: Square, to: Square) -> BitBoard {
     const fn get_line_rays(from: Square, to: Square) -> BitBoard {
         let rays = get_bishop_rays(from);
@@ -128,6 +236,21 @@ pub const fn get_line_rays(from: Square, to: Square) -> BitBoard {
     TABLE[from as usize][to as usize]
 }
 
+/// Get the knight moves for a knight on some square.
+/// ```
+/// # use cozy_chess::*;
+/// let moves = get_knight_moves(Square::D3);
+/// assert_eq!(moves, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . X . X . . .
+///     . X . . . X . .
+///     . . . . . . . .
+///     . X . . . X . .
+///     . . X . X . . .
+/// });
+/// ```
 pub const fn get_knight_moves(square: Square) -> BitBoard {
     const fn get_knight_moves(square: Square) -> BitBoard {
         const KNIGHT_DELTAS: [SquareDelta; 8] = [
@@ -162,6 +285,21 @@ pub const fn get_knight_moves(square: Square) -> BitBoard {
     TABLE[square as usize]
 }
 
+/// Get the king moves for a king on some square.
+/// ```
+/// # use cozy_chess::*;
+/// let moves = get_king_moves(Square::D3);
+/// assert_eq!(moves, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . X X X . . .
+///     . . X . X . . .
+///     . . X X X . . .
+///     . . . . . . . .
+/// });
+/// ```
 pub const fn get_king_moves(square: Square) -> BitBoard {
     const fn get_king_moves(square: Square) -> BitBoard {
         const KING_DELTAS: [SquareDelta; 8] = [
@@ -196,7 +334,21 @@ pub const fn get_king_moves(square: Square) -> BitBoard {
     TABLE[square as usize]
 }
 
-///Get pawn captures
+/// Get the pawn attacks for a pawn on some square
+/// ```
+/// # use cozy_chess::*;
+/// let attacks = get_pawn_attacks(Square::D3, Color::White);
+/// assert_eq!(attacks, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . X . X . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+/// });
+/// ```
 pub const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
     const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
         const PAWN_DELTAS: [[SquareDelta; 2]; Color::NUM] = [
@@ -232,7 +384,43 @@ pub const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
     TABLE[color as usize][square as usize]
 }
 
-///Get pawn forward moves/non-captures.
+/// Get the pawn forward moves/non-captures for a pawn of some color on some square.
+/// ```
+/// # use cozy_chess::*;
+/// let moves = get_pawn_quiets(Square::D2, Color::White, BitBoard::EMPTY);
+/// assert_eq!(moves, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . X . . . .
+///     . . . X . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+/// });
+/// 
+/// let blockers = bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . X . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+/// };
+/// let moves = get_pawn_quiets(Square::D7, Color::Black, blockers);
+/// assert_eq!(moves, bitboard! {
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . X . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+///     . . . . . . . .
+/// });
+/// ```
 pub const fn get_pawn_quiets(square: Square, color: Color, blockers: BitBoard) -> BitBoard {
     let square_bb = square.bitboard();
     let mut moves = BitBoard(if let Color::White = color {

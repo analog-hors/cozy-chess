@@ -17,8 +17,8 @@ pub use bitboard::*;
 pub use castling::*;
 pub use chess_move::*;
 
-pub mod board;
-pub mod moves;
+mod board;
+mod moves;
 
 pub use board::*;
 pub use moves::*;

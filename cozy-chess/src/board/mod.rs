@@ -31,26 +31,100 @@ impl Default for Board {
 }
 
 impl Board {
+    /// Get a [`BitBoard`] of all the pieces of a certain type
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board = Board::default();
+    /// let pawns = board.pieces(Piece::Pawn);
+    /// assert_eq!(pawns, bitboard! {
+    ///     . . . . . . . .
+    ///     X X X X X X X X
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     X X X X X X X X
+    ///     . . . . . . . .
+    /// });
+    /// ```
     #[inline(always)]
     pub fn pieces(&self, piece: Piece) -> BitBoard {
         self.inner.pieces(piece)
     }
 
+    /// Get a [`BitBoard`] of all the pieces of a certain color
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board = Board::default();
+    /// let white_pieces = board.colors(Color::White);
+    /// assert_eq!(white_pieces, bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    /// });
+    /// ```
     #[inline(always)]
     pub fn colors(&self, color: Color) -> BitBoard {
         self.inner.colors(color)
     }
 
+    /// Get a [`BitBoard`] of all the pieces on the board
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board = Board::default();
+    /// assert_eq!(board.occupied(), bitboard! {
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    /// });
+    /// ```
     #[inline(always)]
     pub fn occupied(&self) -> BitBoard {
         self.inner.colors(Color::White) | self.inner.colors(Color::Black)
     }
 
+    /// Get the current side to move.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// assert_eq!(board.side_to_move(), Color::White);
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// assert_eq!(board.side_to_move(), Color::Black);
+    /// ```
     #[inline(always)]
     pub fn side_to_move(&self) -> Color {
         self.inner.side_to_move()
     }
 
+    /// Get the [CastleRights] for some side.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// let rights = board.castle_rights(Color::White);
+    /// assert_eq!(rights.short, Some(File::H));
+    /// assert_eq!(rights.long, Some(File::A));
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// board.play_unchecked("e1e2".parse().unwrap());
+    /// let rights = board.castle_rights(Color::White);
+    /// assert_eq!(rights.short, None);
+    /// assert_eq!(rights.long, None);
+    /// ```
     #[inline(always)]
     pub fn castle_rights(&self, color: Color) -> &CastleRights {
         self.inner.castle_rights(color)
@@ -61,44 +135,127 @@ impl Board {
         self.inner.en_passant()
     }
 
-    ///Get the incrementally updated position hash.
-    ///Does not include the halfmove clock or fullmove number.
+    /// Get the incrementally updated position hash.
+    /// Does not include the halfmove clock or fullmove number.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// board.play_unchecked("e1e2".parse().unwrap());
+    /// board.play_unchecked("e8e7".parse().unwrap());
+    /// let expected: Board = "rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3"
+    ///    .parse().unwrap();
+    /// assert_eq!(expected.hash(), board.hash());
+    /// ```
     #[inline(always)]
     pub fn hash(&self) -> u64 {
         self.inner.hash()
     }
 
-    ///Get the pinned pieces on the board.
-    ///Note that this counts pieces regardless of color.
-    ///This counts any piece preventing check on our king.
+    /// Get the pinned pieces for the side to move.
+    /// Note that this counts pieces regardless of color.
+    /// This counts any piece preventing check on our king.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board: Board = "8/8/1q4k1/5p2/1n6/3B4/1KP3r1/8 w - - 0 1".parse().unwrap();
+    /// assert_eq!(board.pinned(), bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . X . . . . . .
+    ///     . . . . . . . .
+    ///     . . X . . . . .
+    ///     . . . . . . . .
+    /// });
+    /// ```
     #[inline(always)]
     pub fn pinned(&self) -> BitBoard {
         self.pinned
     }
 
-    ///Get the pieces currently giving check.
+    /// Get the pieces currently giving check.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board: Board = "1r4r1/pbpknp1p/1b3P2/8/8/B1PB1q2/P4PPP/3R2K1 w - - 0 22"
+    ///     .parse().unwrap();
+    /// assert_eq!(board.checkers(), BitBoard::EMPTY);
+    /// board.play_unchecked("d3f5".parse().unwrap());
+    /// assert_eq!(board.checkers(), bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . X . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . X . . . .
+    /// });
     #[inline(always)]
     pub fn checkers(&self) -> BitBoard {
         self.checkers
     }
 
+    /// Get the [halfmove clock](https://www.chessprogramming.org/Halfmove_Clock).
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// assert_eq!(board.halfmove_clock(), 0);
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// //Remains at zero for pawn moves
+    /// assert_eq!(board.halfmove_clock(), 0);
+    /// board.play_unchecked("e1e2".parse().unwrap());
+    /// //Non-pawn move
+    /// assert_eq!(board.halfmove_clock(), 1);
+    /// ```
     #[inline(always)]
     pub fn halfmove_clock(&self) -> u8 {
         self.halfmove_clock
     }
 
+    /// Get the [fullmove number](https://www.chessprogramming.org/Forsyth-Edwards_Notation#Fullmove_counter).
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// //The fullmove number starts at one.
+    /// assert_eq!(board.fullmove_number(), 1);
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// board.play_unchecked("e1e2".parse().unwrap());
+    /// //3 plies is 1.5 moves, which rounds down
+    /// assert_eq!(board.fullmove_number(), 2);
+    /// ```
     #[inline(always)]
     pub fn fullmove_number(&self) -> u16 {
         self.fullmove_number
     }
 
-    ///Get the type of the piece on `square`, if there is one.
+    /// Get the [Piece] on `square`, if there is one.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board = Board::default();
+    /// assert_eq!(board.piece_on(Square::E1), Some(Piece::King));
+    /// ```
     #[inline(always)]
     pub fn piece_on(&self, square: Square) -> Option<Piece> {
         Piece::ALL.iter().copied().find(|&p| self.pieces(p).has(square))
     }
 
-    ///Get the type of the piece on `square`, if there is one.
+    /// Get the [Color] of the piece on `square`, if there is one.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board = Board::default();
+    /// assert_eq!(board.color_on(Square::E1), Some(Color::White));
+    /// ```
     #[inline(always)]
     pub fn color_on(&self, square: Square) -> Option<Color> {
         if self.colors(Color::White).has(square) {
@@ -110,15 +267,67 @@ impl Board {
         }
     }
 
-    ///Get the king square of some side.
+    /// Get the king square of some side. Panic if there is no king.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board = Board::default();
+    /// assert_eq!(board.king(Color::White), Square::E1);
+    /// ```
     #[inline(always)]
     pub fn king(&self, color: Color) -> Square {
         (self.pieces(Piece::King) & self.colors(color)).next_square().unwrap()
     }
 
-    ///Get the status of the game.
-    ///Note that this game may still be drawn from threefold repetition.
-    ///If the game is won, the loser is the current side to move.
+    /// Get the status of the game.
+    /// Note that this game may still be drawn from threefold repetition.
+    /// If the game is won, the loser is the current side to move.
+    /// # Examples
+    /// ## Checkmate
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// const MOVES: &[&str] = &[
+    ///     "e2e4", "e7e5", "g1f3", "b8c6", "d2d4", "e5d4",
+    ///     "f3d4", "f8c5", "c2c3", "d8f6", "d4c6", "f6f2"
+    /// ];
+    /// for mv in MOVES {
+    ///     assert_eq!(board.status(), GameStatus::Ongoing);
+    ///     board.play_unchecked(mv.parse().unwrap());
+    /// }
+    /// assert_eq!(board.status(), GameStatus::Won);
+    /// let winner = !board.side_to_move();
+    /// assert_eq!(winner, Color::Black);
+    /// ```
+    /// ## Stalemate
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// const MOVES: &[&str] = &[
+    ///     "c2c4", "h7h5", "h2h4", "a7a5", "d1a4",
+    ///     "a8a6", "a4a5", "a6h6", "a5c7", "f7f6",
+    ///     "c7d7", "e8f7", "d7b7", "d8d3", "b7b8",
+    ///     "d3h7", "b8c8", "f7g6", "c8e6"
+    /// ];
+    /// for mv in MOVES {
+    ///     assert_eq!(board.status(), GameStatus::Ongoing);
+    ///     board.play_unchecked(mv.parse().unwrap());
+    /// }
+    /// assert_eq!(board.status(), GameStatus::Drawn);
+    /// ```
+    /// ## 50 move rule
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// const MOVES: &[&str] = &["e1e2", "e8e7", "e2e1", "e7e8"];
+    /// for mv in MOVES.iter().cycle().take(50 * 2) {
+    ///     assert_eq!(board.status(), GameStatus::Ongoing);
+    ///     board.play_unchecked(mv.parse().unwrap());
+    /// }
+    /// assert_eq!(board.status(), GameStatus::Drawn);
+    /// ```
     pub fn status(&self) -> GameStatus {
         if self.halfmove_clock() >= 100 {
             GameStatus::Drawn
@@ -131,8 +340,21 @@ impl Board {
         }
     }
 
-    ///Attempt to play a [null move](https://www.chessprogramming.org/Null_Move),
-    ///returning a new board if successful.
+    /// Attempt to play a [null move](https://www.chessprogramming.org/Null_Move),
+    /// returning a new board if successful.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// board.play_unchecked("f2f4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// assert_eq!(board.side_to_move(), Color::White);
+    /// board = board.null_move().unwrap();
+    /// assert_eq!(board.side_to_move(), Color::Black);
+    /// board.play_unchecked("d8h4".parse().unwrap());
+    /// //Can't leave the king in check
+    /// assert!(board.null_move().is_none());
+    /// ```
     pub fn null_move(&self) -> Option<Board> {
         if self.checkers.empty() {
             let mut board = self.clone();
@@ -169,7 +391,18 @@ impl Board {
         }
     }
 
-    ///Play a move without checking its legality. Note that this only supports Chess960 style castling.
+    /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// board.play_unchecked("e1e2".parse().unwrap());
+    /// board.play_unchecked("e8e7".parse().unwrap());
+    /// const EXPECTED: &str = "rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3";
+    /// assert_eq!(format!("{}", board), EXPECTED);
+    /// ```
     pub fn play_unchecked(&mut self, mv: Move) {
         self.pinned = BitBoard::EMPTY;
         self.checkers = BitBoard::EMPTY;
@@ -356,57 +589,5 @@ mod tests {
             assert_eq!(board.hash(), expected.parse::<Board>().unwrap().hash());
         }
     }
-
-    #[test]
-    fn status_checkmate() {
-        let mut board: Board = "8/5p2/5rk1/2R1Q1pp/8/6P1/5PK1/8 b - - 3 69".parse().unwrap();
-        const MOVES: &[&str] = &[
-            "f6e6",
-            "e5g5",
-            "g6h7",
-            "c5c7",
-            "e6f6",
-            "g5f6",
-            "h5h4",
-            "c7f7",
-            "h7g8",
-            "f6g7"
-        ];
-        for mv in MOVES {
-            assert_eq!(board.status(), GameStatus::Ongoing);
-            board.play_unchecked(mv.parse().unwrap());
-        }
-        assert_eq!(board.status(), GameStatus::Won);
-    }
-
-    #[test]
-    fn status_stalemate() {
-        let mut board = Board::default();
-        const MOVES: &[&str] = &[
-            "c2c4",
-            "h7h5",
-            "h2h4",
-            "a7a5",
-            "d1a4",
-            "a8a6",
-            "a4a5",
-            "a6h6",
-            "a5c7",
-            "f7f6",
-            "c7d7",
-            "e8f7",
-            "d7b7",
-            "d8d3",
-            "b7b8",
-            "d3h7",
-            "b8c8",
-            "f7g6",
-            "c8e6"
-        ];
-        for mv in MOVES {
-            assert_eq!(board.status(), GameStatus::Ongoing);
-            board.play_unchecked(mv.parse().unwrap());
-        }
-        assert_eq!(board.status(), GameStatus::Drawn);
-    }
 }
+

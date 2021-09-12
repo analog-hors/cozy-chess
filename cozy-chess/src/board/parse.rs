@@ -7,6 +7,13 @@ use crate::*;
 use super::ZobristBoard;
 
 impl Board {
+    /// Check if the board is valid. If not, other functions may not work as expected.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// assert!(board.validity_check());
+    /// ```
     pub fn validity_check(&self) -> bool {
         macro_rules! soft_assert {
             ($expr:expr) => {
@@ -77,8 +84,23 @@ impl Board {
         true
     }
 
-    ///Parse a FEN string. If `shredder` is true, it parses Shredder FEN instead.
-    ///You can also parse the board with [`FromStr`], which parses regular FEN.
+    /// Parse a FEN string. If `shredder` is true, it parses Shredder FEN instead.
+    /// You can also parse the board with [`FromStr`], which parses regular FEN.
+    /// # Examples
+    /// ## FEN
+    /// ```
+    /// # use cozy_chess::*;
+    /// const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    /// let board = Board::from_fen(STARTPOS, false).unwrap();
+    /// assert_eq!(format!("{}", board), STARTPOS);
+    /// ```
+    /// ## Shredder FEN
+    /// ```
+    /// # use cozy_chess::*;
+    /// const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w HAha - 0 1";
+    /// let board = Board::from_fen(STARTPOS, true).unwrap();
+    /// assert_eq!(format!("{:#}", board), STARTPOS);
+    /// ```
     pub fn from_fen(fen: &str, shredder: bool) -> Result<Self, FenParseError> {
         let mut board = Self {
             inner: ZobristBoard::empty(),
@@ -265,14 +287,36 @@ pub enum FenParseError {
 impl FromStr for Board {
     type Err = FenParseError;
 
-    ///Parse the board. You can also parse Shredder FEN with [`Board::from_fen`]
+    /// Parse the board. You can also parse Shredder FEN with [`Board::from_fen`]
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    /// let board: Board = STARTPOS.parse().unwrap();
+    /// assert_eq!(format!("{}", board), STARTPOS);
+    /// ```
     fn from_str(fen: &str) -> Result<Self, Self::Err> {
         Self::from_fen(fen, false)
     }
 }
 
 impl Display for Board {
-    ///Display the board. You can use the alternate format mode for Shredder FEN
+    /// Display the board. You can use the alternate format mode for Shredder FEN
+    /// # Examples
+    /// ## FEN
+    /// ```
+    /// # use cozy_chess::*;
+    /// const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    /// let board = Board::default();
+    /// assert_eq!(format!("{}", board), STARTPOS);
+    /// ```
+    /// ## Shredder FEN
+    /// ```
+    /// # use cozy_chess::*;
+    /// const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w HAha - 0 1";
+    /// let board = Board::default();
+    /// assert_eq!(format!("{:#}", board), STARTPOS);
+    /// ```
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let shredder = f.alternate();
         for &rank in Rank::ALL.iter().rev() {
@@ -334,25 +378,4 @@ impl Display for Board {
         write!(f, " {} {}", self.halfmove_clock, self.fullmove_number)?;
         Ok(())
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn roundtrip_startpos() {
-        const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-        let board = STARTPOS.parse::<Board>().unwrap();
-        assert_eq!(format!("{}", board), STARTPOS);
-    }
-    
-    #[test]
-    fn roundtrip_shredder_startpos() {
-        const STARTPOS: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w HAha - 0 1";
-        let board = Board::from_fen(STARTPOS, true).unwrap();
-        assert_eq!(format!("{:#}", board), STARTPOS);
-    }
-
-    //TODO more FEN tests
 }
