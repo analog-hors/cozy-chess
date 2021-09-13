@@ -245,27 +245,31 @@ impl Board {
             }
         }
         if !IN_CHECK {
-            let blockers = self.occupied();
+            let blockers = self.occupied() ^ our_king.bitboard();
             let pinned = self.pinned();
             let rights = self.castle_rights(color);
             let back_rank = Rank::First.relative_to(color);
-            if let Some(rook) = rights.short {
+            let mut handle_castling = |rook, king_dest, rook_dest| {
                 let rook = Square::new(rook, back_rank);
-                if !pinned.has(rook) && (blockers & get_between_rays(our_king, rook)).is_empty() {
-                    let mut path = get_between_rays(our_king, Square::new(File::H, back_rank));
-                    if path.all(|square| self.king_safe_on(square)) {
-                        moves |= rook.bitboard();
-                    }
+                let blockers = blockers ^ rook.bitboard();
+                let king_dest = Square::new(king_dest, back_rank);
+                let rook_dest = Square::new(rook_dest, back_rank);
+                let king_to_rook = get_between_rays(our_king, rook);
+                let king_to_dest = get_between_rays(our_king, king_dest);
+                let mut must_be_safe = king_to_dest | king_dest.bitboard();
+                let must_be_empty = must_be_safe | king_to_rook | rook_dest.bitboard();
+                let can_castle = !pinned.has(rook)
+                    && (blockers & must_be_empty).is_empty()
+                    && must_be_safe.all(|square| self.king_safe_on(square));
+                if can_castle {
+                    moves |= rook.bitboard();
                 }
+            };
+            if let Some(rook) = rights.short {
+                handle_castling(rook, File::G, File::F);
             }
             if let Some(rook) = rights.long {
-                let rook = Square::new(rook, back_rank);
-                if !pinned.has(rook) && (blockers & get_between_rays(our_king, rook)).is_empty() {
-                    let mut path = get_between_rays(our_king, Square::new(File::B, back_rank));
-                    if path.all(|square| self.king_safe_on(square)) {
-                        moves |= rook.bitboard();
-                    }
-                }
+                handle_castling(rook, File::C, File::D);
             }
         }
         if !moves.is_empty() {

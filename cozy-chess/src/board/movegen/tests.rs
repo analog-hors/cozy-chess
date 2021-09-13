@@ -29,7 +29,9 @@ macro_rules! make_perft_test {
     ($($name:ident($board:expr $(,$node:expr)*);)*) => {
         $(#[test]
         fn $name() {
-            let board = $board.parse::<Board>().unwrap();
+            let board = $board.parse::<Board>()
+                .or_else(|_| Board::from_fen($board, true))
+                .unwrap();
             const NODES: &'static [u64] = &[$($node),*];
             for (depth, &nodes) in NODES.iter().enumerate() {
                 assert_eq!(perft(&board, depth as u8), nodes, "Perft {}", depth);
@@ -95,5 +97,45 @@ make_perft_test! {
         89890,
         3894594,
         164075551
+    );
+    perft_960_position_333(
+        "1rqbkrbn/1ppppp1p/1n6/p1N3p1/8/2P4P/PP1PPPP1/1RQBKRBN w FBfb - 0 9",
+        1,
+        29,
+        502,
+        14569,
+        287739,
+        8652810,
+        191762235
+    );
+    perft_960_position_404(
+        "rbbqn1kr/pp2p1pp/6n1/2pp1p2/2P4P/P7/BP1PPPP1/R1BQNNKR w HAha - 0 9",
+        1,
+        27,
+        916,
+        25798,
+        890435,
+        26302461,
+        924181432
+    );
+    perft_960_position_789(
+        "rqbbknr1/1ppp2pp/p5n1/4pp2/P7/1PP5/1Q1PPPPP/R1BBKNRN w GAga - 0 9",
+        1,
+        24,
+        600,
+        15347,
+        408207,
+        11029596,
+        308553169
+    );
+    perft_960_position_726(
+        "rkb2bnr/pp2pppp/2p1n3/3p4/q2P4/5NP1/PPP1PP1P/RKBNQBR1 w Aha - 0 9",
+        1,
+        29,
+        861,
+        24504,
+        763454,
+        22763215,
+        731511256 
     );
 }
