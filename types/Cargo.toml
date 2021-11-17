@@ -2,7 +2,7 @@
 name = "cozy-chess-types"
 version = "0.1.1"
 authors = ["analog-hors <44050761+analog-hors@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 
 license = "MIT"
 description = "Do not use! Internal library for cozy-chess."

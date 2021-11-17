@@ -2,7 +2,7 @@
 name = "cozy-chess"
 version = "0.1.2"
 authors = ["analog-hors <44050761+analog-hors@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 build = "src/build.rs"
 
 license = "MIT"
