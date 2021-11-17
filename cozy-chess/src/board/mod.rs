@@ -138,6 +138,18 @@ impl Board {
         self.inner.castle_rights(color)
     }
 
+    /// Get the en passant file, if it exists.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board: Board = "1k2r3/2p5/p4p2/Pb6/1p1b1P1R/1P6/2P3PP/5K2 w - - 1 36"
+    ///     .parse().unwrap();
+    /// assert_eq!(board.en_passant(), None);
+    /// board.play_unchecked("c2c4".parse().unwrap());
+    /// assert_eq!(board.en_passant(), Some(File::C));
+    /// board.play_unchecked("b4c3".parse().unwrap());
+    /// assert_eq!(board.en_passant(), None);
+    /// ```
     #[inline(always)]
     pub fn en_passant(&self) -> Option<File> {
         self.inner.en_passant()
@@ -297,6 +309,8 @@ impl Board {
 
     /// Get the status of the game.
     /// Note that this game may still be drawn from threefold repetition.
+    /// The game may also be drawn from insufficient material cases such
+    /// as bare kings; This method does not detect such cases.
     /// If the game is won, the loser is the current side to move.
     /// # Panics
     /// This may panic if the board is invalid.
@@ -361,7 +375,8 @@ impl Board {
     /// Attempt to play a [null move](https://www.chessprogramming.org/Null_Move),
     /// returning a new board if successful.
     /// # Panics
-    /// This may panic if the board is invalid.
+    /// This may panic if the board is invalid. However, this is not guaranteed.
+    /// See [`Board::try_null_move`] for a non-panicking variant.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -380,6 +395,8 @@ impl Board {
     }
 
     /// Non-panicking version of [`Board::null_move`].
+    /// # Errors
+    /// See [`Board::null_move`]'s panics.
     pub fn try_null_move(&self) -> Result<Option<Board>, BoardError> {
         Ok(if self.checkers.is_empty() {
             let mut board = self.clone();
@@ -418,7 +435,7 @@ impl Board {
 
     /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
     /// # Panics
-    /// This may panic if the board is invalid.
+    /// This may panic if the board is invalid. However, this is not guaranteed.
     /// See [`Board::try_play_unchecked`] for a non-panicking variant.
     /// # Examples
     /// ```
@@ -435,7 +452,9 @@ impl Board {
         self.try_play_unchecked(mv).expect("Invalid board!");
     }
 
-    ///Non-panicking version of [`Board::play_unchecked`].
+    /// Non-panicking version of [`Board::play_unchecked`].
+    /// # Errors
+    /// See [`Board::play_unchecked`]'s panics.
     pub fn try_play_unchecked(&mut self, mv: Move) -> Result<(), BoardError> {
         self.pinned = BitBoard::EMPTY;
         self.checkers = BitBoard::EMPTY;

@@ -302,12 +302,17 @@ impl Board {
     /// The listener will be called a maximum of 18 times.
     /// The listener can abort the movegen early by returning `true`.
     /// In this case, this function also returns `true`.
+    /// # Panics
+    /// This may panic if the board is invalid. However, this is not guaranteed.
+    /// See [`Board::try_generate_moves`] for a non-panicking variant.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
     /// let board = Board::default();
     /// let mut total_moves = 0;
     /// board.generate_moves(|moves| {
+    ///     //Done this way for demonstration.
+    ///     //Actual counting is best done in bulk with moves.len().
     ///     for _mv in moves {
     ///         total_moves += 1;
     ///     }
@@ -319,6 +324,9 @@ impl Board {
         self.try_generate_moves(listener).expect("Invalid board!")
     }
 
+    /// Non-panicking version of [`Board::generate_moves`].
+    /// # Errors
+    /// See [`Board::generate_moves`]'s panics.
     pub fn try_generate_moves(&self, mut listener: impl FnMut(PieceMoves) -> bool) -> Result<bool, BoardError> {
         if self.try_king(self.side_to_move()).is_err() {
             return Err(BoardError::InvalidBoard);

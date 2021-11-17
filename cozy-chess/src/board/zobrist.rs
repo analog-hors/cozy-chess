@@ -18,49 +18,43 @@ const ZOBRIST: ZobristConstants = {
     //Simple Pcg64Mcg impl
     let mut state = 0x7369787465656E2062797465206E756Du128 | 1;
     macro_rules! rand {
-        () => {
-            {
-                state = state.wrapping_mul(0x2360ED051FC65DA44385DF649FCCF645);
-                let rot = (state >> 122) as u32;
-                let xsl = ((state >> 64) as u64) ^ (state as u64);
-                xsl.rotate_right(rot)
-            }
-        };
+        () => {{
+            state = state.wrapping_mul(0x2360ED051FC65DA44385DF649FCCF645);
+            let rot = (state >> 122) as u32;
+            let xsl = ((state >> 64) as u64) ^ (state as u64);
+            xsl.rotate_right(rot)
+        }};
     }
 
     macro_rules! fill_array {
-        ($array:ident { $expr:expr }) => {
-            {
-                let mut i = 0;
-                while i < $array.len() {
-                    $array[i] = $expr;
-                    i += 1;
-                }
+        ($array:ident { $expr:expr }) => {{
+            let mut i = 0;
+            while i < $array.len() {
+                $array[i] = $expr;
+                i += 1;
             }
-        };
+        }};
     }
 
     macro_rules! color_zobrist_constant {
-        () => {
-            {
-                let mut castle_rights = [0; File::NUM];
-                fill_array!(castle_rights { rand!() });
+        () => {{
+            let mut castle_rights = [0; File::NUM];
+            fill_array!(castle_rights { rand!() });
 
-                let mut pieces = [[0; Square::NUM]; Piece::NUM];
-                fill_array!(pieces {
-                    {
-                        let mut squares = [0; Square::NUM];
-                        fill_array!(squares { rand!() });
-                        squares
-                    }
-                });
-                
-                ColorZobristConstants {
-                    pieces,
-                    castle_rights
+            let mut pieces = [[0; Square::NUM]; Piece::NUM];
+            fill_array!(pieces {
+                {
+                    let mut squares = [0; Square::NUM];
+                    fill_array!(squares { rand!() });
+                    squares
                 }
+            });
+            
+            ColorZobristConstants {
+                pieces,
+                castle_rights
             }
-        };
+        }};
     }
 
     let mut en_passant = [0; File::NUM];

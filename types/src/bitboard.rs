@@ -98,6 +98,7 @@ macro_rules! impl_wrapping_ops {
     ($($fn:ident),*) => {
         impl BitBoard {
             $(
+                #[doc = concat!("See [`u64::", stringify!($fn), "`].")]
                 #[inline(always)]
                 pub const fn $fn(self, other: Self) -> Self {
                     Self(self.0.$fn(other.0))
