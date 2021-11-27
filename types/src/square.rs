@@ -66,9 +66,44 @@ impl Square {
         File::index_const(self as usize & 0b000111)
     }
 
-    ///Get a bitboard with this square set
+    /// Get a bitboard with this square set.
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(Square::B2.bitboard(), bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . X . . . . . .
+    ///     . . . . . . . .
+    /// });
+    /// ```
     #[inline(always)]
     pub const fn bitboard(self) -> BitBoard {
         BitBoard(1 << self as u8)
+    }
+
+    /// Flip the file of this square.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(Square::A1.flip_file(), Square::H1);
+    /// ```
+    #[inline(always)]
+    pub const fn flip_file(self) -> Self {
+        Self::index_const(self as usize ^ 0b000111)
+    }
+
+    /// Flip the rank of this square.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(Square::A1.flip_rank(), Square::A8);
+    /// ```
+    #[inline(always)]
+    pub const fn flip_rank(self) -> Self {
+        Self::index_const(self as usize ^ 0b111000)
     }
 }

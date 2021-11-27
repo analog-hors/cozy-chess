@@ -162,12 +162,11 @@ impl BitBoard {
         X X X X X X X X
     };
 
-    /// Count the number of squares in the bitboard
+    /// Flip the bitboard's ranks.
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
-    /// assert_eq!(BitBoard::EMPTY.popcnt(), 0);
-    /// let bitboard = bitboard! {
+    /// let bb = bitboard! {
     ///     . . . . . . . .
     ///     . . . . . . . .
     ///     . . X X X . . .
@@ -177,7 +176,76 @@ impl BitBoard {
     ///     . . . . . . . .
     ///     . . . . . . . .
     /// };
-    /// assert_eq!(bitboard.popcnt(), 12);
+    /// assert_eq!(bb.flip_ranks(), bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X . X . . .
+    ///     . . X X X X . .
+    ///     . . X . X X . .
+    ///     . . X X X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// });
+    /// ```
+    #[inline(always)]
+    pub const fn flip_ranks(self) -> Self {
+        Self(self.0.swap_bytes())
+    }
+
+    /// Flip the bitboard's files.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// let bb = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// assert_eq!(bb.flip_files(), bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . X X X . .
+    ///     . . X X . X . .
+    ///     . . X X X X . .
+    ///     . . . X . X . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// });
+    /// ```
+    #[inline(always)]
+    pub const fn flip_files(self) -> Self {
+        //https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Horizontal
+        const K1: u64 = 0x5555555555555555;
+        const K2: u64 = 0x3333333333333333;
+        const K4: u64 = 0x0F0F0F0F0F0F0F0F;
+        let mut new = self.0;
+        new = ((new >> 1) & K1) | ((new & K1) << 1);
+        new = ((new >> 2) & K2) | ((new & K2) << 2);
+        new = ((new >> 4) & K4) | ((new & K4) << 4);
+        Self(new)
+    }
+
+    /// Count the number of squares in the bitboard
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(BitBoard::EMPTY.popcnt(), 0);
+    /// let bb = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// assert_eq!(bb.popcnt(), 12);
     /// ```
     #[inline(always)]
     pub const fn popcnt(self) -> u32 {
@@ -188,7 +256,7 @@ impl BitBoard {
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
-    /// let bitboard = bitboard! {
+    /// let bb = bitboard! {
     ///     . . . . . . . .
     ///     . . . . . . . .
     ///     . . X X X . . .
@@ -198,8 +266,8 @@ impl BitBoard {
     ///     . . . . . . . .
     ///     . . . . . . . .
     /// };
-    /// assert!(bitboard.has(Square::C3));
-    /// assert!(!bitboard.has(Square::B2));
+    /// assert!(bb.has(Square::C3));
+    /// assert!(!bb.has(Square::B2));
     /// ```
     #[inline(always)]
     pub const fn has(self, square: Square) -> bool {
@@ -211,7 +279,7 @@ impl BitBoard {
     /// ```
     /// # use cozy_chess_types::*;
     /// assert!(BitBoard::EMPTY.is_empty());
-    /// let bitboard = bitboard! {
+    /// let bb = bitboard! {
     ///     . . . . . . . .
     ///     . . . . . . . .
     ///     . . X X X . . .
@@ -221,7 +289,7 @@ impl BitBoard {
     ///     . . . . . . . .
     ///     . . . . . . . .
     /// };
-    /// assert!(!bitboard.is_empty());
+    /// assert!(!bb.is_empty());
     /// ```
     #[inline(always)]
     pub const fn is_empty(self) -> bool {
@@ -233,7 +301,7 @@ impl BitBoard {
     /// ```
     /// # use cozy_chess_types::*;
     /// assert!(BitBoard::EMPTY.next_square().is_none());
-    /// let bitboard = bitboard! {
+    /// let bb = bitboard! {
     ///     . . . . . . . .
     ///     . . . . . . . .
     ///     . . X X X . . .
@@ -243,7 +311,7 @@ impl BitBoard {
     ///     . . . . . . . .
     ///     . . . . . . . .
     /// };
-    /// assert_eq!(bitboard.next_square(), Some(Square::C3));
+    /// assert_eq!(bb.next_square(), Some(Square::C3));
     /// ```
     #[inline(always)]
     pub const fn next_square(self) -> Option<Square> {
@@ -345,17 +413,22 @@ pub use __bitboard as bitboard;
 
 impl std::fmt::Debug for BitBoard {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for &rank in Rank::ALL.iter().rev() {
-            for &file in &File::ALL {
-                let square = Square::new(file, rank).bitboard();
-                if *self & square != Self::EMPTY {
-                    write!(f, "X ")?;
-                } else {
-                    write!(f, ". ")?;
+        if f.alternate() {
+            write!(f, "bitboard! {{")?;
+            for &rank in Rank::ALL.iter().rev() {
+                write!(f, "\n   ")?;
+                for &file in &File::ALL {
+                    if self.has(Square::new(file, rank)) {
+                        write!(f, " X")?;
+                    } else {
+                        write!(f, " .")?;
+                    }
                 }
             }
-            writeln!(f)?;
+            write!(f, "\n}}")?;
+            Ok(())
+        } else {
+            write!(f, "BitBoard({:#018X})", self.0)
         }
-        Ok(())
     }
 }
