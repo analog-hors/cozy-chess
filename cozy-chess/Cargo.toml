@@ -13,10 +13,10 @@ keywords = ["chess"]
 readme = "../README.md"
 
 [dependencies]
-cozy-chess-types = { path = "../types", version = "0.1" }
+cozy-chess-types = { path = "../types", version = "0.1.2" }
 
 [build-dependencies]
-cozy-chess-types = { path = "../types", version = "0.1" }
+cozy-chess-types = { path = "../types", version = "0.1.2" }
 
 [dev-dependencies]
 criterion = "0.3"
