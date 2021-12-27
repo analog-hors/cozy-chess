@@ -51,16 +51,34 @@ impl std::fmt::Display for Square {
 }
 
 impl Square {
+    /// Make a square from a file and a rank.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(Square::new(File::A, Rank::First), Square::A1);
+    /// ```
     #[inline(always)]
     pub const fn new(file: File, rank: Rank) -> Self {
         Self::index_const(((rank as usize) << 3) | file as usize)
     }
 
+    /// Get the rank of this square.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(Square::A1.rank(), Rank::First);
+    /// ```    
     #[inline(always)]
     pub const fn rank(self) -> Rank {
         Rank::index_const(self as usize >> 3)
     }
 
+    /// Get the file of this square.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(Square::A1.file(), File::A);
+    /// ```
     #[inline(always)]
     pub const fn file(self) -> File {
         File::index_const(self as usize & 0b000111)
@@ -83,6 +101,50 @@ impl Square {
     #[inline(always)]
     pub const fn bitboard(self) -> BitBoard {
         BitBoard(1 << self as u8)
+    }
+
+    /// Offsets the square towards the top right.
+    /// # Panics
+    /// Panic if the offset would put the square out of bounds.
+    /// See [`Square::try_offset`] for a non-panicking variant.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(Square::A1.offset(1, 2), Square::B3);
+    /// ```
+    pub const fn offset(self, file_offset: i8, rank_offset: i8) -> Square {
+        if let Some(sq) = self.try_offset(file_offset, rank_offset) {
+            sq
+        } else {
+            panic!("Offset would put square out of bounds.")
+        }
+    }
+
+    /// Non-panicking version of [`Board::play_unchecked`].
+    #[inline(always)]
+    pub const fn try_offset(self, file_offset: i8, rank_offset: i8) -> Option<Square> {
+        macro_rules! const_try {
+            ($expr:expr) => {{
+                // If we write it as an expression, clippy complains we can
+                // use ? even though we can't because it's a const context.
+                // So we have to convert it to this to stick on
+                // #[allow(clippy::question_mark)], because otherwise the
+                // compiler complains. This causes the clippy warning to go
+                // away anyway. Bleh.
+                let ret;
+                #[allow(clippy::question_mark)]
+                if let Some(value) = $expr {
+                    ret = value;
+                } else {
+                    return None;
+                }
+                ret
+            }};
+        }
+        Some(Square::new(
+            const_try!(File::try_index((self.file() as i8 + file_offset) as usize)),
+            const_try!(Rank::try_index((self.rank() as i8 + rank_offset) as usize))
+        ))
     }
 
     /// Flip the file of this square.

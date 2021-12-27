@@ -28,19 +28,27 @@ macro_rules! simple_enum {
                 }
             }
 
-            #[doc = concat!("Convert an index to a [`", stringify!($name), "`].")]
+            #[doc = concat!(
+                "Convert an index to a [`", stringify!($name), "`].\n",
+                "# Panics\n",
+                "Panic if the index is out of bounds."
+            )]
             #[inline(always)]
             pub fn index(index: usize) -> Self {
                 Self::try_index(index).unwrap_or_else(|| panic!("Index {} is out of range.", index))
             }
 
-            #[doc = concat!("`const` version of [`", stringify!($name), "::index`].")]
+            #[doc = concat!(
+                "`const` version of [`", stringify!($name), "::index`].\n",
+                "# Panics\n",
+                "Panic if the index is out of bounds."
+            )]
             #[inline(always)]
             pub const fn index_const(index: usize) -> Self {
                 if let Some(value) = Self::try_index(index) {
                     value
                 } else {
-                    [/* Index is out of range */][index]
+                    panic!("Index is out of range")
                 }
             }
         }

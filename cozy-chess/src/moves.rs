@@ -253,20 +253,21 @@ pub const fn get_line_rays(from: Square, to: Square) -> BitBoard {
 /// ```
 pub const fn get_knight_moves(square: Square) -> BitBoard {
     const fn get_knight_moves(square: Square) -> BitBoard {
-        const KNIGHT_DELTAS: [SquareDelta; 8] = [
-            SquareDelta(-1, 2),
-            SquareDelta(1, 2),
-            SquareDelta(2, 1),
-            SquareDelta(2, -1),
-            SquareDelta(1, -2),
-            SquareDelta(-1, -2),
-            SquareDelta(-2, -1),
-            SquareDelta(-2, 1)
+        const KNIGHT_DELTAS: [(i8, i8); 8] = [
+            (-1, 2),
+            (1, 2),
+            (2, 1),
+            (2, -1),
+            (1, -2),
+            (-1, -2),
+            (-2, -1),
+            (-2, 1)
         ];
         let mut moves = BitBoard::EMPTY;
         let mut i = 0;
         while i < KNIGHT_DELTAS.len() {
-            if let Some(square) = KNIGHT_DELTAS[i].add(square) {
+            let (df, dr) = KNIGHT_DELTAS[i];
+            if let Some(square) = square.try_offset(df, dr) {
                 moves.0 |= square.bitboard().0;
             }
             i += 1;
@@ -302,20 +303,21 @@ pub const fn get_knight_moves(square: Square) -> BitBoard {
 /// ```
 pub const fn get_king_moves(square: Square) -> BitBoard {
     const fn get_king_moves(square: Square) -> BitBoard {
-        const KING_DELTAS: [SquareDelta; 8] = [
-            SquareDelta(0, 1),
-            SquareDelta(1, 1),
-            SquareDelta(1, 0),
-            SquareDelta(1, -1),
-            SquareDelta(0, -1),
-            SquareDelta(-1, -1),
-            SquareDelta(-1, 0),
-            SquareDelta(-1, 1)
+        const KING_DELTAS: [(i8, i8); 8] = [
+            (0, 1),
+            (1, 1),
+            (1, 0),
+            (1, -1),
+            (0, -1),
+            (-1, -1),
+            (-1, 0),
+            (-1, 1)
         ];
         let mut moves = BitBoard::EMPTY;
         let mut i = 0;
         while i < KING_DELTAS.len() {
-            if let Some(square) = KING_DELTAS[i].add(square) {
+            let (df, dr) = KING_DELTAS[i];
+            if let Some(square) = square.try_offset(df, dr) {
                 moves.0 |= square.bitboard().0;
             }
             i += 1;
@@ -351,14 +353,15 @@ pub const fn get_king_moves(square: Square) -> BitBoard {
 /// ```
 pub const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
     const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
-        const PAWN_DELTAS: [[SquareDelta; 2]; Color::NUM] = [
-            [SquareDelta(1, 1), SquareDelta(-1, 1)],
-            [SquareDelta(1, -1), SquareDelta(-1, -1)]
+        const PAWN_DELTAS: [[(i8, i8); 2]; Color::NUM] = [
+            [(1, 1), (-1, 1)],
+            [(1, -1), (-1, -1)]
         ];
         let mut moves = BitBoard::EMPTY;
         let mut i = 0;
         while i < PAWN_DELTAS[color as usize].len() {
-            if let Some(square) = PAWN_DELTAS[color as usize][i].add(square) {
+            let (df, dr) = PAWN_DELTAS[color as usize][i];
+            if let Some(square) = square.try_offset(df, dr) {
                 moves.0 |= square.bitboard().0;
             }
             i += 1;

@@ -68,4 +68,60 @@ impl File {
             0b00000001
         ]) << self as usize)
     }
+
+    /// Get a bitboard with all squares on adjacent files set.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(File::C.adjacent(), bitboard! {
+    ///     . X . X . . . .
+    ///     . X . X . . . .
+    ///     . X . X . . . .
+    ///     . X . X . . . .
+    ///     . X . X . . . .
+    ///     . X . X . . . .
+    ///     . X . X . . . .
+    ///     . X . X . . . .
+    /// });
+    /// assert_eq!(File::A.adjacent(), bitboard! {
+    ///     . X . . . . . .
+    ///     . X . . . . . .
+    ///     . X . . . . . .
+    ///     . X . . . . . .
+    ///     . X . . . . . .
+    ///     . X . . . . . .
+    ///     . X . . . . . .
+    ///     . X . . . . . .
+    /// });
+    /// assert_eq!(File::H.adjacent(), bitboard! {
+    ///     . . . . . . X .
+    ///     . . . . . . X .
+    ///     . . . . . . X .
+    ///     . . . . . . X .
+    ///     . . . . . . X .
+    ///     . . . . . . X .
+    ///     . . . . . . X .
+    ///     . . . . . . X .
+    /// });
+    /// ```
+    #[inline(always)]
+    pub const fn adjacent(self) -> BitBoard {
+        const TABLE: [BitBoard; File::NUM] = {
+            let mut table = [BitBoard::EMPTY; File::NUM];
+            let mut i = 0;
+            while i < table.len() {
+                if i > 0 {
+                    table[i].0 |= File::index_const(i - 1)
+                        .bitboard().0;
+                }
+                if i < (table.len() - 1) {
+                    table[i].0 |= File::index_const(i + 1)
+                        .bitboard().0;
+                }
+                i += 1;
+            }
+            table
+        };
+        TABLE[self as usize]
+    }
 }

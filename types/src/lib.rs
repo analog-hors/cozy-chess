@@ -9,7 +9,6 @@ pub mod file;
 pub mod rank;
 pub mod bitboard;
 pub mod castling;
-pub mod delta;
 pub mod magics;
 pub mod chess_move;
 
@@ -20,6 +19,5 @@ pub use file::*;
 pub use rank::*;
 pub use bitboard::*;
 pub use castling::*;
-pub use delta::*;
 pub use magics::*;
 pub use chess_move::*;
