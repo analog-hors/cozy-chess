@@ -433,10 +433,69 @@ impl Board {
         })
     }
 
-    /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
+    /// See if a move is legal.
     /// # Panics
     /// This may panic if the board is invalid. However, this is not guaranteed.
+    /// See [`Board::try_is_legal`] for a non-panicking variant.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// assert!(board.is_legal("e2e4".parse().unwrap()));
+    /// assert!(!board.is_legal("e1e8".parse().unwrap()));
+    /// ```
+    pub fn is_legal(&self, mv: Move) -> bool {
+        self.try_is_legal(mv).expect("Invalid board!")
+    }
+
+    /// Non-panicking version of [`Board::is_legal`].
+    /// # Errors
+    /// See [`Board::is_legal`]'s panics.
+    pub fn try_is_legal(&self, mv: Move) -> Result<bool, BoardError> {
+        let mut is_legal = false;
+        self.try_generate_moves_for(mv.from.bitboard(), |moves| {
+            if moves.has(mv) {
+                is_legal = true;
+            }
+            is_legal
+        })?;
+        Ok(is_legal)
+    }
+
+    /// Play a move while checking its legality. Note that this only supports Chess960 style castling.
+    /// # Panics
+    /// This is guaranteed to panic if the move is illegal.
+    /// This may panic if the board is invalid. However, this is not guaranteed.
+    /// See [`Board::try_play`] for a non-panicking variant.
+    /// See [`Board::play_unchecked`] for a faster variant
+    /// that's not guaranteed to panic on illegal moves.
+    /// # Examples
+    /// ## Legal moves
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// board.play("e2e4".parse().unwrap());
+    /// board.play("e7e5".parse().unwrap());
+    /// board.play("e1e2".parse().unwrap());
+    /// board.play("e8e7".parse().unwrap());
+    /// const EXPECTED: &str = "rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3";
+    /// assert_eq!(format!("{}", board), EXPECTED);
+    /// ```
+    /// ## Illegal moves
+    /// ```should_panic
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// board.play("e1e8".parse().unwrap());
+    /// ```
+    pub fn play(&mut self, mv: Move) {
+        assert!(self.try_play(mv).expect("Invalid board!"), "Illegal move {}!", mv);
+    }
+
+    /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
+    /// # Panics
+    /// This may panic if the board or move is invalid. However, this is not guaranteed.
     /// See [`Board::try_play_unchecked`] for a non-panicking variant.
+    /// See [`Board::play`] for a variant guaranteed to panic on illegal moves.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -450,6 +509,18 @@ impl Board {
     /// ```
     pub fn play_unchecked(&mut self, mv: Move) {
         self.try_play_unchecked(mv).expect("Invalid board!");
+    }
+
+    /// Non-panicking version of [`Board::play`].
+    /// Try to play a move and returns `true` if it was successful.
+    /// # Errors
+    /// This may return an error if the board is invalid. However, this is not guaranteed.
+    pub fn try_play(&mut self, mv: Move) -> Result<bool, BoardError> {
+        if !self.is_legal(mv) {
+            return Ok(false);
+        }
+        self.try_play_unchecked(mv)?;
+        Ok(true)
     }
 
     /// Non-panicking version of [`Board::play_unchecked`].

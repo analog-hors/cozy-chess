@@ -136,6 +136,23 @@ impl BitBoard {
     /// ```
     pub const EMPTY: Self = Self(0);
 
+    /// A [`BitBoard`] with every square.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(BitBoard::FULL, bitboard! {
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    ///     X X X X X X X X
+    /// });
+    /// ```
+    pub const FULL: Self = Self(!0);
+
     /// The edges on the board.
     /// # Examples
     /// ```

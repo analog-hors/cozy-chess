@@ -139,3 +139,40 @@ make_perft_test! {
         731511256 
     );
 }
+
+#[test]
+fn subset_movegen_kiwipete() {
+    fn visit(board: &Board, depth: u8) {
+        let random = board.hash();
+        let subset_a = BitBoard(random);
+        let subset_b = !subset_a;
+        let mut subset_moves = 0;
+        board.generate_moves_for(subset_a, |moves| {
+            subset_moves += moves.len();
+            false
+        });
+        board.generate_moves_for(subset_b, |moves| {
+            subset_moves += moves.len();
+            false
+        });
+        let mut total_moves = 0;
+        board.generate_moves(|moves| {
+            total_moves += moves.len();
+            false
+        });
+        assert_eq!(subset_moves, total_moves);
+        if depth > 0 {
+            board.generate_moves(|moves| {
+                for mv in moves {
+                    let mut board = board.clone();
+                    board.play_unchecked(mv);
+                    visit(&board, depth - 1);
+                }
+                false
+            });
+        }
+    }
+    let board = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+        .parse().unwrap();
+    visit(&board, 4);
+}

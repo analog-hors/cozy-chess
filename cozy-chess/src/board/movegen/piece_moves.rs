@@ -44,6 +44,16 @@ impl PieceMoves {
     pub fn is_empty(&self) -> bool {
         self.to == BitBoard::EMPTY
     }
+
+    /// Check if it contains a given [`Move`].
+    pub fn has(&self, mv: Move) -> bool {
+        let has_promotion = mv.promotion.is_some();
+        let is_promotion = self.piece == Piece::Pawn &&
+            matches!(mv.to.rank(), Rank::First | Rank::Eighth);
+        self.from == mv.from
+            && self.to.has(mv.to)
+            && (has_promotion == is_promotion)
+    }
 }
 
 ///Iterator for [`PieceMoves`].
@@ -119,5 +129,43 @@ mod tests {
             iter.next();
             assert_eq!(iter.len(), len);
         }
+    }
+    
+    #[test]
+    fn has_works() {
+        let mv = PieceMoves {
+            piece: Piece::King,
+            from: Square::A7,
+            to: get_king_moves(Square::A7)
+        };
+        assert!(!mv.has(Move {
+            from: Square::A7,
+            to: Square::A8,
+            promotion: Some(Piece::Queen)
+        }));
+        assert!(mv.has(Move {
+            from: Square::A7,
+            to: Square::A8,
+            promotion: None
+        }));
+    }
+
+    #[test]
+    fn has_handles_promotions() {
+        let mv = PieceMoves {
+            piece: Piece::Pawn,
+            from: Square::A7,
+            to: Square::A8.bitboard() | Square::B8.bitboard()
+        };
+        assert!(mv.has(Move {
+            from: Square::A7,
+            to: Square::A8,
+            promotion: Some(Piece::Queen)
+        }));
+        assert!(!mv.has(Move {
+            from: Square::A7,
+            to: Square::A8,
+            promotion: None
+        }));
     }
 }

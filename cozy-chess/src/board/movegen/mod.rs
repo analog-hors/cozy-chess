@@ -66,10 +66,10 @@ impl Board {
 
     fn add_slider_legals<
         P: slider::SlidingPiece, F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool
-    >(&self, listener: &mut F) -> bool {
+    >(&self, mask: BitBoard, listener: &mut F) -> bool {
         let color = self.side_to_move();
         let our_king = self.king(color);
-        let pieces = self.pieces(P::PIECE) & self.colors(color);
+        let pieces = self.pieces(P::PIECE) & self.colors(color) & mask;
         let pinned = self.pinned();
         let blockers = self.occupied();
         let target_squares = self.target_squares::<IN_CHECK>();
@@ -102,11 +102,13 @@ impl Board {
         false
     }
 
-    fn add_knight_legals<F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool>(&self, listener: &mut F) -> bool {
+    fn add_knight_legals<
+        F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool
+    >(&self, mask: BitBoard, listener: &mut F) -> bool {
         const PIECE: Piece = Piece::Knight;
 
         let color = self.side_to_move();
-        let pieces = self.pieces(PIECE) & self.colors(color);
+        let pieces = self.pieces(PIECE) & self.colors(color) & mask;
         let pinned = self.pinned();
         let target_squares = self.target_squares::<IN_CHECK>();
 
@@ -123,12 +125,14 @@ impl Board {
         false
     }
 
-    fn add_pawn_legals<F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool>(&self, listener: &mut F) -> bool {
+    fn add_pawn_legals<
+        F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool
+    >(&self, mask: BitBoard, listener: &mut F) -> bool {
         const PIECE: Piece = Piece::Pawn;
 
         let color = self.side_to_move();
         let our_king = self.king(color);
-        let pieces = self.pieces(PIECE) & self.colors(color);
+        let pieces = self.pieces(PIECE) & self.colors(color) & mask;
         let their_pieces = self.colors(!color);
         let pinned = self.pinned();
         let blockers = self.occupied();
@@ -232,12 +236,17 @@ impl Board {
         }
     }
 
-    fn add_king_legals<F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool>(&self, listener: &mut F) -> bool {
+    fn add_king_legals<
+        F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool
+    >(&self, mask: BitBoard, listener: &mut F) -> bool {
         const PIECE: Piece = Piece::King;
 
         let color = self.side_to_move();
         let our_pieces = self.colors(color);
         let our_king = self.king(color);
+        if !mask.has(our_king) {
+            return false;
+        }
         let mut moves = BitBoard::EMPTY;
         for to in get_king_moves(our_king) & !our_pieces {
             if self.king_safe_on(to) {
@@ -282,14 +291,16 @@ impl Board {
         false
     }
 
-    fn add_all_legals<F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool>(&self, listener: &mut F) -> bool {
+    fn add_all_legals<
+        F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool
+    >(&self, mask: BitBoard, listener: &mut F) -> bool {
         abort_if! {
-            self.add_pawn_legals::<_, IN_CHECK>(listener),
-            self.add_knight_legals::<_, IN_CHECK>(listener),
-            self.add_slider_legals::<slider::Bishop, _, IN_CHECK>(listener),
-            self.add_slider_legals::<slider::Rook, _, IN_CHECK>(listener),
-            self.add_slider_legals::<slider::Queen, _, IN_CHECK>(listener),
-            self.add_king_legals::<_, IN_CHECK>(listener)
+            self.add_pawn_legals::<_, IN_CHECK>(mask, listener),
+            self.add_knight_legals::<_, IN_CHECK>(mask, listener),
+            self.add_slider_legals::<slider::Bishop, _, IN_CHECK>(mask, listener),
+            self.add_slider_legals::<slider::Rook, _, IN_CHECK>(mask, listener),
+            self.add_slider_legals::<slider::Queen, _, IN_CHECK>(mask, listener),
+            self.add_king_legals::<_, IN_CHECK>(mask, listener)
         }
         false
     }
@@ -311,8 +322,8 @@ impl Board {
     /// let board = Board::default();
     /// let mut total_moves = 0;
     /// board.generate_moves(|moves| {
-    ///     //Done this way for demonstration.
-    ///     //Actual counting is best done in bulk with moves.len().
+    ///     // Done this way for demonstration.
+    ///     // Actual counting is best done in bulk with moves.len().
     ///     for _mv in moves {
     ///         total_moves += 1;
     ///     }
@@ -321,20 +332,56 @@ impl Board {
     /// assert_eq!(total_moves, 20);
     /// ```
     pub fn generate_moves(&self, listener: impl FnMut(PieceMoves) -> bool) -> bool {
-        self.try_generate_moves(listener).expect("Invalid board!")
+        self.generate_moves_for(BitBoard::FULL, listener)
     }
 
     /// Non-panicking version of [`Board::generate_moves`].
     /// # Errors
     /// See [`Board::generate_moves`]'s panics.
-    pub fn try_generate_moves(&self, mut listener: impl FnMut(PieceMoves) -> bool) -> Result<bool, BoardError> {
+    pub fn try_generate_moves(&self, listener: impl FnMut(PieceMoves) -> bool) -> Result<bool, BoardError> {
+        self.try_generate_moves_for(BitBoard::FULL, listener)
+    }
+
+    /// Version of [`Board::generate_moves`] moves that
+    /// generates moves for only a subset of pieces.
+    /// # Panics
+    /// This may panic if the board is invalid. However, this is not guaranteed.
+    /// See [`Board::try_generate_moves_for`] for a non-panicking variant.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board = Board::default();
+    /// let knights = board.pieces(Piece::Knight);
+    /// let mut knight_moves = 0;
+    /// board.generate_moves_for(knights, |moves| {
+    ///     // Done this way for demonstration.
+    ///     // Actual counting is best done in bulk with moves.len().
+    ///     for _mv in moves {
+    ///         knight_moves += 1;
+    ///     }
+    ///     false
+    /// });
+    /// assert_eq!(knight_moves, 4);
+    /// ```
+    pub fn generate_moves_for(
+        &self, mask: BitBoard, listener: impl FnMut(PieceMoves) -> bool
+    ) -> bool {
+        self.try_generate_moves_for(mask, listener).expect("Invalid board!")
+    }
+
+    /// Non-panicking version of [`Board::generate_moves_for`].
+    /// # Errors
+    /// See [`Board::generate_moves_for`]'s panics.
+    pub fn try_generate_moves_for(
+        &self, mask: BitBoard, mut listener: impl FnMut(PieceMoves) -> bool
+    ) -> Result<bool, BoardError> {
         if self.try_king(self.side_to_move()).is_err() {
             return Err(BoardError::InvalidBoard);
         }
         Ok(match self.checkers().popcnt() {
-            0 => self.add_all_legals::<_, false>(&mut listener),
-            1 => self.add_all_legals::<_, true>(&mut listener),
-            _ => self.add_king_legals::<_, true>(&mut listener)
+            0 => self.add_all_legals::<_, false>(mask, &mut listener),
+            1 => self.add_all_legals::<_, true>(mask ,&mut listener),
+            _ => self.add_king_legals::<_, true>(mask, &mut listener)
         })
     }
 }
