@@ -120,7 +120,9 @@ impl Square {
         }
     }
 
-    /// Non-panicking version of [`Board::play_unchecked`].
+    /// Non-panicking version of [`Square::offset`].
+    /// # Errors
+    /// See [`Square::offset`]'s panics.
     #[inline(always)]
     pub const fn try_offset(self, file_offset: i8, rank_offset: i8) -> Option<Square> {
         macro_rules! const_try {

@@ -3,9 +3,12 @@ use crate::*;
 mod movegen;
 mod parse;
 mod zobrist;
+mod builder;
+mod validate;
 
 use zobrist::*;
 pub use movegen::*;
+pub use builder::*;
 
 /// The current state of the game.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -32,7 +35,7 @@ pub struct Board {
 }
 
 impl Default for Board {
-    ///Note: This function is implemented by parsing a FEN string, which could be expensive.
+    /// Note: This function is implemented by parsing a FEN string, which could be expensive.
     fn default() -> Self {
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".parse().unwrap()
     }

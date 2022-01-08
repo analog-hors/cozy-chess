@@ -6,86 +6,20 @@ use crate::*;
 
 use super::ZobristBoard;
 
+/// An error while parsing the FEN.
+#[derive(Debug, Clone, Copy)]
+pub enum FenParseError {
+    InvalidBoard,
+    InvalidSideToMove,
+    InvalidCastlingRights,
+    InvalidEnPassant,
+    InvalidHalfMoveClock,
+    InvalidFullmoveNumber,
+    MissingField,
+    TooManyFields
+}
+
 impl Board {
-    /// Check if the board is valid. If not, other functions may not work as expected.
-    /// # Examples
-    /// ```
-    /// # use cozy_chess::*;
-    /// let mut board = Board::default();
-    /// assert!(board.validity_check());
-    /// let _ = board.try_play_unchecked("e1e8".parse().unwrap());
-    /// assert!(!board.validity_check());
-    /// ```
-    pub fn validity_check(&self) -> bool {
-        macro_rules! soft_assert {
-            ($expr:expr) => {
-                if !$expr {
-                    return false;
-                }
-            }
-        }
-
-        //Verify that the board's data makes sense. The bitboards should not overlap.
-        let mut occupied = BitBoard::EMPTY;
-        for piece in Piece::ALL {
-            let pieces = self.pieces(piece);
-            soft_assert!((pieces & occupied).is_empty());
-            occupied |= pieces;
-        }
-        soft_assert!((self.colors(Color::White) & self.colors(Color::Black)).is_empty());
-        soft_assert!(occupied == self.occupied());
-        
-        for &color in &Color::ALL {
-            let pieces = self.colors(color);
-            soft_assert!((pieces & self.pieces(Piece::King)).popcnt() == 1);
-            soft_assert!(pieces.popcnt() <= 16);
-            soft_assert!((pieces & self.pieces(Piece::Pawn)).popcnt() <= 8);
-
-            let back_rank = Rank::First.relative_to(color);
-            soft_assert!((pieces & self.pieces(Piece::Pawn) & back_rank.bitboard()).is_empty());
-
-            let rights = self.castle_rights(color);
-            let our_rooks = pieces & self.pieces(Piece::Rook);
-            if rights.short.is_some() || rights.long.is_some() {
-                let our_king = self.king(color);
-                soft_assert!(our_king.rank() == back_rank);
-                if let Some(rook) = rights.long {
-                    soft_assert!(our_rooks.has(Square::new(rook, back_rank)));
-                    soft_assert!(rook < our_king.file());
-                }
-                if let Some(rook) = rights.short {
-                    soft_assert!(our_rooks.has(Square::new(rook, back_rank)));
-                    soft_assert!(our_king.file() < rook);
-                }
-            }
-        }
-
-        let color = self.side_to_move();
-        if let Some(en_passant) = self.en_passant() {
-            let en_passant_square = Square::new(
-                en_passant,
-                Rank::Third.relative_to(!color)
-            );
-            let en_passant_pawn = Square::new(
-                en_passant,
-                Rank::Fourth.relative_to(!color)
-            );
-            soft_assert!(!self.occupied().has(en_passant_square));
-            soft_assert!((self.colors(!color) & self.pieces(Piece::Pawn)).has(en_passant_pawn));
-        }
-
-        let (our_checkers, _) = self.calculate_checkers_and_pins(!color);
-        //Opponent can't be in check while it's our turn
-        soft_assert!(our_checkers.is_empty());
-
-        let (checkers, pinned) = self.calculate_checkers_and_pins(color);
-        soft_assert!(self.checkers() == checkers);
-        soft_assert!(self.pinned() == pinned);
-        soft_assert!(self.checkers().popcnt() < 3);
-
-        true
-    }
-
     /// Parse a FEN string. If `shredder` is true, it parses Shredder FEN instead.
     /// You can also parse the board with [`FromStr`], which parses regular FEN.
     /// # Examples
@@ -104,6 +38,8 @@ impl Board {
     /// assert_eq!(format!("{:#}", board), STARTPOS);
     /// ```
     pub fn from_fen(fen: &str, shredder: bool) -> Result<Self, FenParseError> {
+        use FenParseError::*;
+
         let mut board = Self {
             inner: ZobristBoard::empty(),
             pinned: BitBoard::EMPTY,
@@ -112,178 +48,143 @@ impl Board {
             fullmove_number: 0
         };
         let mut parts = fen.split(' ');
-        macro_rules! parse_fields {
-            ($($parser:expr, $error:expr;)*) => {
-                $(parts.next().and_then($parser).ok_or($error)?;)*
-            }
+        let mut next = || parts.next().ok_or(MissingField);
+        Self::parse_board(&mut board, next()?)
+            .map_err(|_| InvalidBoard)?;
+        Self::parse_side_to_move(&mut board, next()?)
+            .map_err(|_| InvalidSideToMove)?;
+        if !board.board_is_valid() {
+            return Err(InvalidBoard);
         }
-        parse_fields! {
-            |s| {
-                for (rank, row) in s.rsplit('/').enumerate() {
-                    let rank = Rank::try_index(rank)?;
-                    let mut file = 0;
-                    for p in row.chars() {
-                        if let Some(offset) = p.to_digit(10) {
-                            file += offset as usize;
-                        } else {
-                            let piece = p.to_ascii_lowercase().try_into().ok()?;
-                            let color = if p.is_ascii_uppercase() {
-                                Color::White
-                            } else {
-                                Color::Black
-                            };
-                            let square = Square::new(
-                                File::try_index(file)?,
-                                rank
-                            );
-                            board.inner.xor_square(piece, color, square);
-                            file += 1;
-                        }
-                    }
-                    if file != File::NUM {
-                        return None;
-                    }
-                }
-                Some(())
-            }, FenParseError::InvalidBoard;
-            |s| {
-                if s.parse::<Color>().ok()? != board.side_to_move() {
-                    board.inner.toggle_side_to_move();
-                }
-                Some(())
-            }, FenParseError::InvalidSideToMove;
-            |s| {
-                if s != "-" {
-                    for c in s.chars() {
-                        let color = if c.is_ascii_uppercase() {
-                            Color::White
-                        } else {
-                            Color::Black
-                        };
-                        let king_file = (
-                            board.pieces(Piece::King) &
-                            board.colors(color)
-                        ).next_square()?.file();
-                        let (short, file) = if shredder {
-                            let file = c.to_ascii_lowercase().try_into().ok()?;
-                            (king_file < file, file)
-                        } else {
-                            match c.to_ascii_lowercase() {
-                                'k' => (true, File::H),
-                                'q' => (false, File::A),
-                                _ => return None
-                            }
-                        };
-                        let rights = board.castle_rights(color);
-                        let prev = if short {
-                            rights.short
-                        } else {
-                            rights.long
-                        };
-                        if prev.is_some() {
-                            //Duplicates
-                            return None;
-                        }
-                        board.inner.set_castle_right(color, short, Some(file));
-                    }
-                }
-                Some(())
-            }, FenParseError::InvalidCastlingRights;
-            |s| {
-                if s != "-" {
-                    let square = s.parse::<Square>().ok()?;
-                    let en_passant_rank = Rank::Third.relative_to(!board.side_to_move());
-                    if square.rank() != en_passant_rank {
-                        return None;
-                    }
-                    board.inner.set_en_passant(Some(square.file()));
-                }
-                Some(())
-            }, FenParseError::InvalidEnPassant;
-            |s| {
-                board.halfmove_clock = s.parse().ok()?;
-                if board.halfmove_clock > 100 {
-                    return None;
-                }
-                Some(())
-            }, FenParseError::InvalidHalfMoveClock;
-            |s| {
-                board.fullmove_number = s.parse().ok()?;
-                if board.fullmove_number == 0 {
-                    return None;
-                }
-                Some(())
-            }, FenParseError::InvalidFullmoveNumber;
+        Self::parse_castle_rights(&mut board, next()?, shredder)
+            .map_err(|_| InvalidCastlingRights)?;
+        if !board.castle_rights_are_valid() {
+            return Err(InvalidCastlingRights);
         }
-        if parts.next().is_some() {
-            return Err(FenParseError::TooManyFields);
+        Self::parse_en_passant(&mut board, next()?)
+            .map_err(|_| InvalidCastlingRights)?;
+        if !board.en_passant_is_valid() {
+            return Err(InvalidEnPassant);
+        }
+        Self::parse_halfmove_clock(&mut board, next()?)
+            .map_err(|_| InvalidHalfMoveClock)?;
+        if !board.halfmove_clock_is_valid() {
+            return Err(InvalidHalfMoveClock);
+        }
+        Self::parse_fullmove_number(&mut board, next()?)
+            .map_err(|_| InvalidFullmoveNumber)?;
+        if !board.fullmove_number_is_valid() {
+            return Err(InvalidFullmoveNumber);
         }
 
-        let color = board.side_to_move();
-        let our_pieces = board.colors(color); 
-        let their_pieces = board.colors(!color);
-        let our_kings = (board.pieces(Piece::King) & our_pieces).popcnt();
-        let their_kings = (board.pieces(Piece::King) & their_pieces).popcnt();
-        if our_kings == 1 && their_kings == 1 {
-            let (checkers, pinned) = board.calculate_checkers_and_pins(color);
-            board.checkers = checkers;
-            board.pinned = pinned;
-        }
-
-        if !board.validity_check() {
-            return Err(FenParseError::InvalidBoard);
+        let (checkers, pinned) = board.calculate_checkers_and_pins(board.side_to_move());
+        board.checkers = checkers;
+        board.pinned = pinned;
+        if !board.checkers_and_pins_are_valid() {
+            return Err(InvalidBoard);
         }
 
         Ok(board)
     }
 
-    fn calculate_checkers_and_pins(&self, color: Color) -> (BitBoard, BitBoard) {
-        let our_king = self.king(color);
-        let their_pieces = self.colors(!color);
-
-        let mut checkers = BitBoard::EMPTY;
-        let mut pinned = BitBoard::EMPTY;
-
-        let their_attackers = their_pieces & (
-            (get_bishop_rays(our_king) & (
-                self.pieces(Piece::Bishop) |
-                self.pieces(Piece::Queen)
-            )) |
-            (get_rook_rays(our_king) & (
-                self.pieces(Piece::Rook) |
-                self.pieces(Piece::Queen)
-            ))
-        );
-        for attacker in their_attackers {
-            let between = get_between_rays(attacker, our_king) &
-                self.occupied();
-            match between.popcnt() {
-                0 => checkers |= attacker.bitboard(),
-                1 => pinned |= between,
-                _ => {}
+    fn parse_board(board: &mut Board, s: &str) -> Result<(), ()> {
+        for (rank, row) in s.rsplit('/').enumerate() {
+            let rank = Rank::try_index(rank).ok_or(())?;
+            let mut file = 0;
+            for p in row.chars() {
+                if let Some(offset) = p.to_digit(10) {
+                    file += offset as usize;
+                } else {
+                    let piece = p.to_ascii_lowercase().try_into().map_err(|_| ())?;
+                    let color = if p.is_ascii_uppercase() {
+                        Color::White
+                    } else {
+                        Color::Black
+                    };
+                    let square = Square::new(
+                        File::try_index(file).ok_or(())?,
+                        rank
+                    );
+                    board.inner.xor_square(piece, color, square);
+                    file += 1;
+                }
+            }
+            if file != File::NUM {
+                return Err(());
             }
         }
-
-        checkers |= get_knight_moves(our_king)
-            & their_pieces
-            & self.pieces(Piece::Knight);
-        checkers |= get_pawn_attacks(our_king, color)
-            & their_pieces
-            & self.pieces(Piece::Pawn);
-        (checkers, pinned)
+        Ok(())
     }
-}
 
+    fn parse_side_to_move(board: &mut Board, s: &str) -> Result<(), ()> {
+        if s.parse::<Color>().map_err(|_| ())? != board.side_to_move() {
+            board.inner.toggle_side_to_move();
+        }
+        Ok(())
+    }
 
-#[derive(Debug, Clone, Copy)]
-pub enum FenParseError {
-    InvalidBoard,
-    InvalidSideToMove,
-    InvalidCastlingRights,
-    InvalidEnPassant,
-    InvalidHalfMoveClock,
-    InvalidFullmoveNumber,
-    TooManyFields
+    fn parse_castle_rights(board: &mut Board, s: &str, shredder: bool) -> Result<(), ()> {
+        if s != "-" {
+            for c in s.chars() {
+                let color = if c.is_ascii_uppercase() {
+                    Color::White
+                } else {
+                    Color::Black
+                };
+                let king_file = board.king(color).file();
+                let (short, file) = if shredder {
+                    let file = c.to_ascii_lowercase().try_into().map_err(|_| ())?;
+                    (king_file < file, file)
+                } else {
+                    match c.to_ascii_lowercase() {
+                        'k' => (true, File::H),
+                        'q' => (false, File::A),
+                        _ => return Err(())
+                    }
+                };
+                let rights = board.castle_rights(color);
+                let prev = if short {
+                    rights.short
+                } else {
+                    rights.long
+                };
+                if prev.is_some() {
+                    // Duplicates
+                    return Err(());
+                }
+                board.inner.set_castle_right(color, short, Some(file));
+            }
+        }
+        Ok(())
+    }
+
+    fn parse_en_passant(board: &mut Board, s: &str) -> Result<(), ()> {
+        if s != "-" {
+            let square = s.parse::<Square>().map_err(|_| ())?;
+            let en_passant_rank = Rank::Third.relative_to(!board.side_to_move());
+            if square.rank() != en_passant_rank {
+                return Err(());
+            }
+            board.inner.set_en_passant(Some(square.file()));
+        }
+        Ok(())
+    }
+
+    fn parse_halfmove_clock(board: &mut Board, s: &str) -> Result<(), ()> {
+        board.halfmove_clock = s.parse().map_err(|_| ())?;
+        if board.halfmove_clock > 100 {
+            return Err(());
+        }
+        Ok(())
+    }
+
+    fn parse_fullmove_number(board: &mut Board, s: &str) -> Result<(), ()> {
+        board.fullmove_number = s.parse().map_err(|_| ())?;
+        if board.fullmove_number == 0 {
+            return Err(());
+        }
+        Ok(())
+    }
 }
 
 impl FromStr for Board {
@@ -380,4 +281,19 @@ impl Display for Board {
         write!(f, " {} {}", self.halfmove_clock, self.fullmove_number)?;
         Ok(())
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn handles_valid_fens() {
+        for fen in include_str!("test_data/valid.sfens").lines() {
+            let board = Board::from_fen(&fen, true).unwrap();
+            assert!(board.validity_check());
+        }
+    }
+
+    //No invalid FEN test yet due to lack of invalid FEN data.
 }
