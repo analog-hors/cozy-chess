@@ -1,6 +1,6 @@
 [package]
 name = "cozy-chess"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["analog-hors <44050761+analog-hors@users.noreply.github.com>"]
 edition = "2021"
 build = "src/build.rs"

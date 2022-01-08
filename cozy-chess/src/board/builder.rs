@@ -16,6 +16,7 @@ pub enum BoardBuilderError {
 }
 
 /// A board builder to manipulate arbitrary boards.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BoardBuilder {
     pub board: [Option<(Piece, Color)>; Square::NUM],
     pub side_to_move: Color,
