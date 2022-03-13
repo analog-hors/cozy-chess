@@ -430,14 +430,13 @@ impl Board {
             return Ok(self.king_is_legal(mv));
         }
 
+        if self.pinned().has(mv.from) && !get_line_rays(king_sq, mv.from).has(mv.to) {
+            return Ok(false);
+        }
+
         let target_squares = match self.checkers().popcnt() {
             0 => self.target_squares::<false>(),
-            1 => {
-                if self.pinned().has(mv.from) && !get_line_rays(king_sq, mv.from).has(mv.to) {
-                    return Ok(false)
-                }
-                self.target_squares::<true>()
-            }
+            1 => self.target_squares::<true>(),
             _ => return Ok(false),
         };
 
