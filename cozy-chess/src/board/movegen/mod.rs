@@ -236,6 +236,25 @@ impl Board {
         }
     }
 
+    fn can_castle(&self, rook: File, king_dest: File, rook_dest: File) -> bool {
+        let color = self.side_to_move();
+        let our_king = self.king(color);
+        let back_rank = Rank::First.relative_to(color);
+        let blockers = self.occupied() ^ our_king.bitboard();
+        let pinned = self.pinned();
+        let rook = Square::new(rook, back_rank);
+        let blockers = blockers ^ rook.bitboard();
+        let king_dest = Square::new(king_dest, back_rank);
+        let rook_dest = Square::new(rook_dest, back_rank);
+        let king_to_rook = get_between_rays(our_king, rook);
+        let king_to_dest = get_between_rays(our_king, king_dest);
+        let mut must_be_safe = king_to_dest | king_dest.bitboard();
+        let must_be_empty = must_be_safe | king_to_rook | rook_dest.bitboard();
+        !pinned.has(rook)
+            && (blockers & must_be_empty).is_empty()
+            && must_be_safe.all(|square| self.king_safe_on(square))
+    }
+
     fn add_king_legals<
         F: FnMut(PieceMoves) -> bool, const IN_CHECK: bool
     >(&self, mask: BitBoard, listener: &mut F) -> bool {
@@ -254,31 +273,17 @@ impl Board {
             }
         }
         if !IN_CHECK {
-            let blockers = self.occupied() ^ our_king.bitboard();
-            let pinned = self.pinned();
             let rights = self.castle_rights(color);
             let back_rank = Rank::First.relative_to(color);
-            let mut handle_castling = |rook, king_dest, rook_dest| {
-                let rook = Square::new(rook, back_rank);
-                let blockers = blockers ^ rook.bitboard();
-                let king_dest = Square::new(king_dest, back_rank);
-                let rook_dest = Square::new(rook_dest, back_rank);
-                let king_to_rook = get_between_rays(our_king, rook);
-                let king_to_dest = get_between_rays(our_king, king_dest);
-                let mut must_be_safe = king_to_dest | king_dest.bitboard();
-                let must_be_empty = must_be_safe | king_to_rook | rook_dest.bitboard();
-                let can_castle = !pinned.has(rook)
-                    && (blockers & must_be_empty).is_empty()
-                    && must_be_safe.all(|square| self.king_safe_on(square));
-                if can_castle {
-                    moves |= rook.bitboard();
-                }
-            };
             if let Some(rook) = rights.short {
-                handle_castling(rook, File::G, File::F);
+                if self.can_castle(rook, File::G, File::F) {
+                    moves |= Square::new(rook, back_rank).bitboard();
+                }
             }
             if let Some(rook) = rights.long {
-                handle_castling(rook, File::C, File::D);
+                if self.can_castle(rook, File::C, File::D) {
+                    moves |= Square::new(rook, back_rank).bitboard();
+                }
             }
         }
         if !moves.is_empty() {
@@ -382,6 +387,94 @@ impl Board {
             0 => self.add_all_legals::<_, false>(mask, &mut listener),
             1 => self.add_all_legals::<_, true>(mask ,&mut listener),
             _ => self.add_king_legals::<_, true>(mask, &mut listener)
+        })
+    }
+
+    fn king_is_legal(&self, mv: Move) -> bool {
+        let castles = self.castle_rights(self.side_to_move());
+        let back_rank = Rank::First.relative_to(self.side_to_move());
+        if let Some(rook) = castles.short {
+            let rook_square = Square::new(rook, back_rank);
+            if rook_square == mv.to && self.can_castle(rook, File::G, File::F) {
+                return true;
+            }
+        }
+        if let Some(rook) = castles.long {
+            let rook_square = Square::new(rook, back_rank);
+            if rook_square == mv.to && self.can_castle(rook, File::C, File::D) {
+                return true;
+            }
+        }
+        if !(get_king_moves(mv.from) & !self.colors(self.side_to_move())).has(mv.to) {
+            return false;
+        }
+        if mv.promotion.is_some() {
+            return false;
+        }
+        self.king_safe_on(mv.to)
+    }
+
+    /// Non-panicking version of [`Board::is_legal`].
+    /// # Errors
+    /// See [`Board::is_legal`]'s panics.
+    pub fn try_is_legal(&self, mv: Move) -> Result<bool, BoardError> {
+        if !self.colors(self.side_to_move()).has(mv.from) {
+            return Ok(false);
+        }
+
+        let king_sq = self.try_king(self.side_to_move())?;
+        if mv.from == king_sq {
+            if mv.promotion.is_some() {
+                return Ok(false);
+            }
+            return Ok(self.king_is_legal(mv));
+        }
+
+        let target_squares = match self.checkers().popcnt() {
+            0 => self.target_squares::<false>(),
+            1 => {
+                if self.pinned().has(mv.from) && !get_line_rays(king_sq, mv.from).has(mv.to) {
+                    return Ok(false)
+                }
+                self.target_squares::<true>()
+            }
+            _ => return Ok(false),
+        };
+
+        let piece = self.piece_on(mv.from);
+        if piece != Some(Piece::Pawn) && mv.promotion.is_some() {
+            return Ok(false);
+        }
+
+        Ok(match piece {
+            None | Some(Piece::King) => false, // impossible
+            Some(Piece::Pawn) => {
+                let promo_rank = Rank::Eighth.relative_to(self.side_to_move());
+                match (mv.to.rank() == promo_rank, mv.promotion) {
+                    (true, Some(Piece::Knight | Piece::Bishop | Piece::Rook | Piece::Queen)) => {}
+                    (false, None) => {}
+                    _ => return Ok(false),
+                }
+                let mut c = |moves: PieceMoves| moves.to.has(mv.to);
+                if self.checkers().is_empty() {
+                    self.add_pawn_legals::<_, false>(mv.from.bitboard(), &mut c)
+                } else {
+                    self.add_pawn_legals::<_, true>(mv.from.bitboard(), &mut c)
+                }
+            }
+            Some(Piece::Rook) => {
+                (target_squares & get_rook_rays(mv.from)).has(mv.to)
+                    && (get_between_rays(mv.from, mv.to) & self.occupied()).is_empty()
+            }
+            Some(Piece::Bishop) => {
+                (target_squares & get_bishop_rays(mv.from)).has(mv.to)
+                    && (get_between_rays(mv.from, mv.to) & self.occupied()).is_empty()
+            }
+            Some(Piece::Knight) => (target_squares & get_knight_moves(mv.from)).has(mv.to),
+            Some(Piece::Queen) => {
+                (target_squares & (get_rook_rays(mv.from) | get_bishop_rays(mv.from))).has(mv.to)
+                    && (get_between_rays(mv.from, mv.to) & self.occupied()).is_empty()
+            }
         })
     }
 }
