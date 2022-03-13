@@ -414,6 +414,21 @@ impl Board {
         self.king_safe_on(mv.to)
     }
 
+    /// See if a move is legal.
+    /// # Panics
+    /// This may panic if the board is invalid. However, this is not guaranteed.
+    /// See [`Board::try_is_legal`] for a non-panicking variant.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// assert!(board.is_legal("e2e4".parse().unwrap()));
+    /// assert!(!board.is_legal("e1e8".parse().unwrap()));
+    /// ```
+    pub fn is_legal(&self, mv: Move) -> bool {
+        self.try_is_legal(mv).expect("Invalid board!")
+    }
+
     /// Non-panicking version of [`Board::is_legal`].
     /// # Errors
     /// See [`Board::is_legal`]'s panics.
