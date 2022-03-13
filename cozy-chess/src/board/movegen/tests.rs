@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use super::*;
 
 fn perft(board: &Board, depth: u8) -> u64 {
@@ -175,4 +177,108 @@ fn subset_movegen_kiwipete() {
     let board = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
         .parse().unwrap();
     visit(&board, 4);
+}
+
+fn test_is_legal(board: Board) {
+    let mut legals = HashSet::new();
+    board.generate_moves(|mvs| {
+        legals.extend(mvs);
+        false
+    });
+
+    const PROMOS: [Option<Piece>; 7] = [
+        None,
+        Some(Piece::Pawn),
+        Some(Piece::Knight),
+        Some(Piece::Bishop),
+        Some(Piece::Rook),
+        Some(Piece::Queen),
+        Some(Piece::King),
+    ];
+
+    for from in Square::ALL {
+        for to in Square::ALL {
+            for promotion in PROMOS {
+                let mv = Move {
+                    from,
+                    to,
+                    promotion,
+                };
+                assert_eq!(legals.contains(&mv), board.is_legal(mv), "{}", mv);
+            }
+        }
+    }
+}
+
+#[test]
+fn legality_simple() {
+    test_is_legal(Board::default());
+    test_is_legal(
+        "rk2r3/pn1p1p1p/1p4NB/2pP1K2/4p2N/1P3BP1/P1P3PP/1R3q2 w - - 2 32"
+            .parse()
+            .unwrap(),
+    );
+}
+
+#[test]
+fn legality_castles() {
+    test_is_legal(
+        "rnbqk2r/ppppbp1p/5np1/4p3/4P3/3P1N2/PPP1BPPP/RNBQK2R w KQkq - 0 5"
+            .parse()
+            .unwrap(),
+    );
+    test_is_legal(
+        "rnbqk2r/ppppbp1p/5npB/4p3/4P3/3P1N2/PPP1BPPP/RN1QK2R b KQkq - 1 5"
+            .parse()
+            .unwrap(),
+    );
+    test_is_legal(
+        "r1bqk2r/ppppbp1p/2n2npB/4p3/4P3/2NP1N2/PPPQBPPP/R3K2R w KQq - 6 8"
+            .parse()
+            .unwrap(),
+    );
+    test_is_legal(
+        "r1bqk2r/ppppbp1p/2n2npB/4p3/4P3/2NP1N2/PPPQBPPP/R2K3R b q - 7 8"
+            .parse()
+            .unwrap(),
+    )
+}
+
+#[test]
+fn legality_castles_960() {
+    test_is_legal(
+        Board::from_fen(
+            "rq1kr3/p1ppbp1p/bpn3pB/3Np3/3P4/1P1Q1Nn1/P1P1BPPP/R2KR3 w AEae - 3 15",
+            true,
+        )
+        .unwrap(),
+    );
+    test_is_legal(
+        Board::from_fen(
+            "rq1kr3/p1ppbp1p/bpn3pB/3Np3/3P4/1P1Q1Nn1/P1P1BPPP/R2KR3 b AEae - 3 15",
+            true,
+        )
+        .unwrap(),
+    );
+    test_is_legal(
+        Board::from_fen(
+            "rk2r3/pqppbp1p/bpn3pB/3Npn2/3P4/1P1Q1N2/P1P2PPP/RKRB4 w ACa - 3 15",
+            true,
+        )
+        .unwrap(),
+    );
+}
+
+#[test]
+fn legality_en_passant() {
+    test_is_legal(
+        "rk2r3/pn1p1p1p/1p4NB/q1pP1K2/4p2b/1P3NP1/P1P3PP/R1RB4 w - - 0 29"
+            .parse()
+            .unwrap(),
+    );
+    test_is_legal(
+        "rk2r3/pn1p1p1p/1p4NB/2pP1K2/4p2N/qP4P1/P1P3PP/R1RB4 w - c6 0 30"
+            .parse()
+            .unwrap(),
+    );
 }

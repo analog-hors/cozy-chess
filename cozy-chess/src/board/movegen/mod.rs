@@ -405,7 +405,7 @@ impl Board {
                 return true;
             }
         }
-        if !get_king_moves(mv.from).has(mv.to) {
+        if !(get_king_moves(mv.from) & !self.colors(self.side_to_move())).has(mv.to) {
             return false;
         }
         if mv.promotion.is_some() {
@@ -424,6 +424,9 @@ impl Board {
 
         let king_sq = self.try_king(self.side_to_move())?;
         if mv.from == king_sq {
+            if mv.promotion.is_some() {
+                return Ok(false);
+            }
             return Ok(self.king_is_legal(mv));
         }
 
@@ -438,17 +441,26 @@ impl Board {
             _ => return Ok(false),
         };
 
-        Ok(match self.piece_on(mv.from) {
+        let piece = self.piece_on(mv.from);
+        if piece != Some(Piece::Pawn) && mv.promotion.is_some() {
+            return Ok(false);
+        }
+
+        Ok(match piece {
             None | Some(Piece::King) => false, // impossible
             Some(Piece::Pawn) => {
-                let mut is_legal = false;
-                self.try_generate_moves_for(mv.from.bitboard(), |moves| {
-                    if moves.has(mv) {
-                        is_legal = true;
-                    }
-                    is_legal
-                })?;
-                is_legal
+                let promo_rank = Rank::Eighth.relative_to(self.side_to_move());
+                match (mv.to.rank() == promo_rank, mv.promotion) {
+                    (true, Some(Piece::Knight | Piece::Bishop | Piece::Rook | Piece::Queen)) => {}
+                    (false, None) => {}
+                    _ => return Ok(false),
+                }
+                let mut c = |moves: PieceMoves| moves.to.has(mv.to);
+                if self.checkers().is_empty() {
+                    self.add_pawn_legals::<_, false>(mv.from.bitboard(), &mut c)
+                } else {
+                    self.add_pawn_legals::<_, true>(mv.from.bitboard(), &mut c)
+                }
             }
             Some(Piece::Rook) => {
                 (target_squares & get_rook_rays(mv.from)).has(mv.to)
