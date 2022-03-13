@@ -451,20 +451,6 @@ impl Board {
         self.try_is_legal(mv).expect("Invalid board!")
     }
 
-    /// Non-panicking version of [`Board::is_legal`].
-    /// # Errors
-    /// See [`Board::is_legal`]'s panics.
-    pub fn try_is_legal(&self, mv: Move) -> Result<bool, BoardError> {
-        let mut is_legal = false;
-        self.try_generate_moves_for(mv.from.bitboard(), |moves| {
-            if moves.has(mv) {
-                is_legal = true;
-            }
-            is_legal
-        })?;
-        Ok(is_legal)
-    }
-
     /// Play a move while checking its legality. Note that this only supports Chess960 style castling.
     /// # Panics
     /// This is guaranteed to panic if the move is illegal.
