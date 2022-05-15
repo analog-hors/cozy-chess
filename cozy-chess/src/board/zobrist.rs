@@ -141,7 +141,7 @@ impl ZobristBoard {
         } else {
             &mut rights.long
         };
-        if let Some(prev) = std::mem::replace(right, file) {
+        if let Some(prev) = core::mem::replace(right, file) {
             self.hash ^= ZOBRIST.color[color as usize].castle_rights[prev as usize];
         }
         if let Some(file) = file {
@@ -150,7 +150,7 @@ impl ZobristBoard {
     }
 
     pub fn set_en_passant(&mut self, new_en_passant: Option<File>) {
-        if let Some(file) = std::mem::replace(&mut self.en_passant, new_en_passant) {
+        if let Some(file) = core::mem::replace(&mut self.en_passant, new_en_passant) {
             self.hash ^= ZOBRIST.en_passant[file as usize];
         }
         if let Some(file) = self.en_passant {

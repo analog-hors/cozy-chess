@@ -8,12 +8,12 @@ pub struct BitBoard(pub u64);
 macro_rules! impl_math_ops {
     ($($trait:ident,$fn:ident;)*) => {
         $(
-            impl std::ops::$trait for BitBoard {
+            impl core::ops::$trait for BitBoard {
                 type Output = Self;
     
                 #[inline(always)]
                 fn $fn(self, other: Self) -> Self::Output {
-                    Self(std::ops::$trait::$fn(self.0, other.0))
+                    Self(core::ops::$trait::$fn(self.0, other.0))
                 }
             }
         )*
@@ -32,10 +32,10 @@ impl_math_ops! {
 macro_rules! impl_math_assign_ops {
     ($($trait:ident,$fn:ident;)*) => {
         $(
-            impl std::ops::$trait for BitBoard {
+            impl core::ops::$trait for BitBoard {
                 #[inline(always)]
                 fn $fn(&mut self, other: Self) {
-                    std::ops::$trait::$fn(&mut self.0, other.0)
+                    core::ops::$trait::$fn(&mut self.0, other.0)
                 }
             }
         )*
@@ -54,12 +54,12 @@ impl_math_assign_ops! {
 macro_rules! impl_shift_ops_for {
     ($type:ident; $($trait:ident,$fn:ident;)*) => {
         $(
-            impl std::ops::$trait<$type> for BitBoard {
+            impl core::ops::$trait<$type> for BitBoard {
                 type Output = Self;
     
                 #[inline(always)]
                 fn $fn(self, other: $type) -> Self::Output {
-                    Self(std::ops::$trait::$fn(self.0, other))
+                    Self(core::ops::$trait::$fn(self.0, other))
                 }
             }
         )*
@@ -68,10 +68,10 @@ macro_rules! impl_shift_ops_for {
 macro_rules! impl_shift_assign_ops_for {
     ($type:ident; $($trait:ident,$fn:ident;)*) => {
         $(
-            impl std::ops::$trait<$type> for BitBoard {
+            impl core::ops::$trait<$type> for BitBoard {
                 #[inline(always)]
                 fn $fn(&mut self, other: $type) {
-                    std::ops::$trait::$fn(&mut self.0, other)
+                    core::ops::$trait::$fn(&mut self.0, other)
                 }
             }
         )*
@@ -109,7 +109,7 @@ macro_rules! impl_wrapping_ops {
 }
 impl_wrapping_ops!(wrapping_add, wrapping_mul, wrapping_sub, wrapping_div);
 
-impl std::ops::Not for BitBoard {
+impl core::ops::Not for BitBoard {
     type Output = Self;
 
     #[inline(always)]
@@ -428,8 +428,8 @@ macro_rules! __bitboard {
 }
 pub use __bitboard as bitboard;
 
-impl std::fmt::Debug for BitBoard {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Debug for BitBoard {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         if f.alternate() {
             write!(f, "bitboard! {{")?;
             for &rank in Rank::ALL.iter().rev() {

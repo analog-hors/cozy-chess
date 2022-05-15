@@ -1,4 +1,4 @@
-use std::num::NonZeroU16;
+use core::num::NonZeroU16;
 
 use crate::*;
 

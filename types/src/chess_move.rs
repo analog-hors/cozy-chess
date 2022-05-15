@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use core::str::FromStr;
 
 use crate::*;
 
@@ -43,8 +43,8 @@ impl FromStr for Move {
     }
 }
 
-impl std::fmt::Display for Move {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for Move {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}{}", self.from, self.to)?;
         if let Some(promotion) = self.promotion {
             write!(f, "{}", promotion)?;

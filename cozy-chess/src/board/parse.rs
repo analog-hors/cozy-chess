@@ -1,6 +1,6 @@
-use std::convert::TryInto;
-use std::str::FromStr;
-use std::fmt::{Display, Formatter};
+use core::convert::TryInto;
+use core::str::FromStr;
+use core::fmt::{Display, Formatter};
 
 use crate::*;
 
@@ -220,7 +220,7 @@ impl Display for Board {
     /// let board = Board::default();
     /// assert_eq!(format!("{:#}", board), STARTPOS);
     /// ```
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         let shredder = f.alternate();
         for &rank in Rank::ALL.iter().rev() {
             let mut empty = 0;

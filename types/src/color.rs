@@ -14,7 +14,7 @@ crate::helpers::enum_char_conv! {
     }
 }
 
-impl std::ops::Not for Color {
+impl core::ops::Not for Color {
     type Output = Self;
 
     #[inline(always)]

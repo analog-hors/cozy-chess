@@ -1,3 +1,4 @@
+#![cfg_attr(not(test), no_std)]
 //! # `cozy-chess`
 
 //! ## Rust Chess and Chess960 move generation library

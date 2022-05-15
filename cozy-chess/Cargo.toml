@@ -1,6 +1,6 @@
 [package]
 name = "cozy-chess"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["analog-hors <44050761+analog-hors@users.noreply.github.com>"]
 edition = "2021"
 build = "src/build.rs"
@@ -13,13 +13,13 @@ keywords = ["chess"]
 readme = "../README.md"
 
 [dependencies]
-cozy-chess-types = { path = "../types", version = "0.1.4" }
+cozy-chess-types = { path = "../types", version = "0.1.5" }
 
 [build-dependencies]
-cozy-chess-types = { path = "../types", version = "0.1.4" }
+cozy-chess-types = { path = "../types", version = "0.1.5" }
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = "0.3.5"
 
 [[bench]]
 name = "perft"

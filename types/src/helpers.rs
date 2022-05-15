@@ -76,7 +76,7 @@ macro_rules! enum_char_conv {
             InvalidValue
         }
 
-        impl std::convert::TryFrom<char> for $enum {
+        impl core::convert::TryFrom<char> for $enum {
             type Error = $error;
 
             fn try_from(value: char) -> Result<Self, Self::Error> {
@@ -87,11 +87,11 @@ macro_rules! enum_char_conv {
             }
         }
 
-        impl std::str::FromStr for $enum {
+        impl core::str::FromStr for $enum {
             type Err = $error;
 
             fn from_str(s: &str) -> Result<Self, Self::Err> {
-                use std::convert::TryInto;
+                use core::convert::TryInto;
 
                 let mut chars = s.chars();
                 let c = chars.next().ok_or($error::InvalidValue)?;
@@ -103,8 +103,8 @@ macro_rules! enum_char_conv {
             }
         }
 
-        impl std::fmt::Display for $enum {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        impl core::fmt::Display for $enum {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
                 let c: char = (*self).into();
                 c.fmt(f)
             }
