@@ -143,10 +143,14 @@ impl Square {
                 ret
             }};
         }
-        Some(Square::new(
-            const_try!(File::try_index((self.file() as i8 + file_offset) as usize)),
-            const_try!(Rank::try_index((self.rank() as i8 + rank_offset) as usize))
-        ))
+        let file_index = self.file() as i8 + file_offset;
+        let rank_index = self.rank() as i8 + rank_offset;
+        if file_index < 0 || rank_index < 0 {
+            return None;
+        };
+        let file = const_try!(File::try_index(file_index as usize));
+        let rank = const_try!(Rank::try_index(rank_index as usize));
+        Some(Square::new(file, rank))
     }
 
     /// Flip the file of this square.
