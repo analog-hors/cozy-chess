@@ -334,16 +334,33 @@ impl BitBoard {
     pub const fn next_square(self) -> Option<Square> {
         Square::try_index(self.0.trailing_zeros() as usize)
     }
+
+    #[inline(always)]
+    pub fn iter(&self) -> BitBoardIter {
+        self.into_iter()
+    }
 }
 
-impl Iterator for BitBoard {
+impl IntoIterator for BitBoard {
+    type Item = Square;
+
+    type IntoIter = BitBoardIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        BitBoardIter(self)
+    }
+}
+
+pub struct BitBoardIter(BitBoard);
+
+impl Iterator for BitBoardIter {
     type Item = Square;
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
-        let square = self.next_square();
+        let square = self.0.next_square();
         if let Some(square) = square {
-            *self ^= square.bitboard();
+            self.0 ^= square.bitboard();
         }
         square
     }
@@ -354,10 +371,10 @@ impl Iterator for BitBoard {
     }
 }
 
-impl ExactSizeIterator for BitBoard {
+impl ExactSizeIterator for BitBoardIter {
     #[inline(always)]
     fn len(&self) -> usize {
-        self.popcnt() as usize
+        self.0.popcnt() as usize
     }
 }
 

@@ -82,11 +82,11 @@ impl Iterator for PieceMovesIter {
                     self.promotion += 1;
                 } else {
                     self.promotion = 0;
-                    self.moves.to.next();
+                    self.moves.to ^= to.bitboard();
                 }
                 Some(promotion)
             } else {
-                self.moves.to.next();
+                self.moves.to ^= to.bitboard();
                 None
             };
             Some(Move {

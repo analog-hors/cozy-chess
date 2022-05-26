@@ -41,10 +41,10 @@ pub fn criterion_benchmark(criterion: &mut Criterion) {
     let to_check: Vec<_> = positions
         .iter()
         .flat_map(move |board| {
-            (board.pieces(Piece::Pawn) & board.colors(board.side_to_move())).flat_map(move |from| {
+            (board.pieces(Piece::Pawn) & board.colors(board.side_to_move())).iter().flat_map(move |from| {
                 (get_pawn_quiets(from, board.side_to_move(), BitBoard::EMPTY)
                     | get_pawn_attacks(from, board.side_to_move()))
-                .flat_map(move |to| {
+                .iter().flat_map(move |to| {
                     promos.iter().map(move |&promotion| {
                         (
                             board,
@@ -73,8 +73,8 @@ pub fn criterion_benchmark(criterion: &mut Criterion) {
     let to_check: Vec<_> = positions
         .iter()
         .flat_map(move |board| {
-            (board.pieces(Piece::Rook) & board.colors(board.side_to_move())).flat_map(move |from| {
-                get_rook_rays(from).map(move |to| {
+            (board.pieces(Piece::Rook) & board.colors(board.side_to_move())).iter().flat_map(move |from| {
+                get_rook_rays(from).iter().map(move |to| {
                     (
                         board,
                         Move {
@@ -101,9 +101,9 @@ pub fn criterion_benchmark(criterion: &mut Criterion) {
     let to_check: Vec<_> = positions
         .iter()
         .flat_map(move |board| {
-            (board.pieces(Piece::Knight) & board.colors(board.side_to_move())).flat_map(
+            (board.pieces(Piece::Knight) & board.colors(board.side_to_move())).iter().flat_map(
                 move |from| {
-                    get_knight_moves(from).map(move |to| {
+                    get_knight_moves(from).iter().map(move |to| {
                         (
                             board,
                             Move {
@@ -131,9 +131,9 @@ pub fn criterion_benchmark(criterion: &mut Criterion) {
     let to_check: Vec<_> = positions
         .iter()
         .flat_map(move |board| {
-            (board.pieces(Piece::Bishop) & board.colors(board.side_to_move())).flat_map(
+            (board.pieces(Piece::Bishop) & board.colors(board.side_to_move())).iter().flat_map(
                 move |from| {
-                    get_bishop_rays(from).map(move |to| {
+                    get_bishop_rays(from).iter().map(move |to| {
                         (
                             board,
                             Move {
@@ -161,9 +161,9 @@ pub fn criterion_benchmark(criterion: &mut Criterion) {
     let to_check: Vec<_> = positions
         .iter()
         .flat_map(move |board| {
-            (board.pieces(Piece::Queen) & board.colors(board.side_to_move())).flat_map(
+            (board.pieces(Piece::Queen) & board.colors(board.side_to_move())).iter().flat_map(
                 move |from| {
-                    (get_rook_rays(from) | get_bishop_rays(from)).map(move |to| {
+                    (get_rook_rays(from) | get_bishop_rays(from)).iter().map(move |to| {
                         (
                             board,
                             Move {
@@ -191,8 +191,8 @@ pub fn criterion_benchmark(criterion: &mut Criterion) {
     let to_check: Vec<_> = positions
         .iter()
         .flat_map(move |board| {
-            (board.pieces(Piece::King) & board.colors(board.side_to_move())).flat_map(move |from| {
-                get_king_moves(from).map(move |to| {
+            (board.pieces(Piece::King) & board.colors(board.side_to_move())).iter().flat_map(move |from| {
+                get_king_moves(from).iter().map(move |to| {
                     (
                         board,
                         Move {
