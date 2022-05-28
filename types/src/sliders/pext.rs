@@ -1,11 +1,14 @@
-use core::arch::x86_64::_pext_u64;
-
 use crate::*;
 
 use super::common::*;
 
 #[cfg(not(all(target_arch = "x86_64", target_feature = "bmi2")))]
 compile_error!("BMI2 feature can only be enabled if target has BMI2.");
+
+fn pext_u64(a: u64, mask: u64) -> u64 {
+    // SAFETY: A compile error is raised if PEXT is not available. PEXT is always safe if available.
+    unsafe { core::arch::x86_64::_pext_u64(a, mask) }
+}
 
 struct PextEntry {
     offset: u32,
@@ -53,11 +56,10 @@ const INDEX_DATA: &PextIndexData = {
     }
 };
 
-fn get_pext_index(data: &[PextEntry; Square::NUM], square: Square, blockers: BitBoard) -> usize {
-    let data = &data[square as usize];
-    // SAFETY: PEXT is always safe if available.
-    let index = unsafe { _pext_u64(blockers.0, data.mask.0) };
-    data.offset as usize + index as usize
+fn get_pext_index(index_data: &[PextEntry; Square::NUM], square: Square, blockers: BitBoard) -> usize {
+    let index_data = &index_data[square as usize];
+    let index = pext_u64(blockers.0, index_data.mask.0);
+    index_data.offset as usize + index as usize
 }
 
 pub fn get_rook_moves_index(square: Square, blockers: BitBoard) -> usize {
