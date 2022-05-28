@@ -10,3 +10,6 @@ homepage = "https://github.com/analog-hors/cozy-chess/"
 repository = "https://github.com/analog-hors/cozy-chess/"
 
 [dependencies]
+
+[features]
+bmi2 = []
