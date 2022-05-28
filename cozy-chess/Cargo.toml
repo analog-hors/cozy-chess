@@ -28,3 +28,7 @@ harness = false
 [[bench]]
 name = "legals"
 harness = false
+
+[[bench]]
+name = "move_fns"
+harness = false
