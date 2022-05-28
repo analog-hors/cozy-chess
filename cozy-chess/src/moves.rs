@@ -3,6 +3,7 @@ use crate::*;
 include!(concat!(env!("OUT_DIR"), "/sliding_moves.rs"));
 
 /// Get the moves for a rook on some square.
+/// See [`get_rook_moves_const`] for a significantly slower `const` variant.
 /// ```
 /// # use cozy_chess::*;
 /// let blockers = bitboard! {
@@ -27,17 +28,17 @@ include!(concat!(env!("OUT_DIR"), "/sliding_moves.rs"));
 ///     . . . X . . . .
 /// });
 /// ```
-pub const fn get_rook_moves(square: Square, blockers: BitBoard) -> BitBoard {
-    let index = get_magic_index(
-        ROOK_MAGICS,
-        ROOK_INDEX_BITS,
-        blockers,
-        square
-    );
-    BitBoard(SLIDING_MOVES[index])
+pub fn get_rook_moves(square: Square, blockers: BitBoard) -> BitBoard {
+    BitBoard(SLIDING_MOVES[get_rook_moves_index(square, blockers)])
+}
+
+/// Significantly slower `const` version of [`get_rook_moves`].
+pub const fn get_rook_moves_const(square: Square, blockers: BitBoard) -> BitBoard {
+    get_rook_moves_slow(square, blockers)
 }
 
 /// Get the moves for a bishop on some square.
+/// See [`get_bishop_moves_const`] for a significantly slower `const` variant.
 /// ```
 /// # use cozy_chess::*;
 /// let blockers = bitboard! {
@@ -62,14 +63,13 @@ pub const fn get_rook_moves(square: Square, blockers: BitBoard) -> BitBoard {
 ///     . X . . . X . .
 /// });
 /// ```
-pub const fn get_bishop_moves(square: Square, blockers: BitBoard) -> BitBoard {
-    let index = get_magic_index(
-        BISHOP_MAGICS,
-        BISHOP_INDEX_BITS,
-        blockers,
-        square
-    );
-    BitBoard(SLIDING_MOVES[index])
+pub fn get_bishop_moves(square: Square, blockers: BitBoard) -> BitBoard {
+    BitBoard(SLIDING_MOVES[get_bishop_moves_index(square, blockers)])
+}
+
+/// Significantly slower `const` version of [`get_bishop_moves`].
+pub const fn get_bishop_moves_const(square: Square, blockers: BitBoard) -> BitBoard {
+    get_bishop_moves_slow(square, blockers)
 }
 
 /// Get the rays for a rook on some square.
@@ -93,7 +93,7 @@ pub const fn get_rook_rays(square: Square) -> BitBoard {
         let mut i = 0;
         while i < table.len() {
             let square = Square::index_const(i);
-            table[i].0 = square.rank().bitboard().0 ^ square.file().bitboard().0;
+            table[i] = get_rook_moves_const(square, BitBoard::EMPTY);
             i += 1;
         }
         table
@@ -117,25 +117,12 @@ pub const fn get_rook_rays(square: Square) -> BitBoard {
 /// });
 /// ```
 pub const fn get_bishop_rays(square: Square) -> BitBoard {
-    const fn get_bishop_rays(square: Square) -> BitBoard {
-        let mut rays = BitBoard::EMPTY.0;
-        let mut i = 0;
-        while i < Square::NUM {
-            let target = Square::index_const(i);
-            let rd = (square.rank() as i8 - target.rank() as i8).abs();
-            let fd = (square.file() as i8 - target.file() as i8).abs();
-            if rd == fd && rd != 0 {
-                rays |= 1 << i;
-            }
-            i += 1;
-        }
-        BitBoard(rays)
-    }
     const TABLE: [BitBoard; Square::NUM] = {
         let mut table = [BitBoard::EMPTY; Square::NUM];
         let mut i = 0;
         while i < table.len() {
-            table[i] = get_bishop_rays(Square::index_const(i));
+            let square = Square::index_const(i);
+            table[i] = get_bishop_moves_const(square, BitBoard::EMPTY);
             i += 1;
         }
         table
@@ -160,16 +147,22 @@ pub const fn get_bishop_rays(square: Square) -> BitBoard {
 /// ```
 pub const fn get_between_rays(from: Square, to: Square) -> BitBoard {
     const fn get_between_rays(from: Square, to: Square) -> BitBoard {
-        let blockers = BitBoard(from.bitboard().0 ^ to.bitboard().0);
-        let bishop_ray = get_bishop_moves(from, blockers);
-        if bishop_ray.has(to) {
-            return BitBoard(bishop_ray.0 & get_bishop_moves(to, blockers).0);
+        let dx = to.file() as i8 - from.file() as i8;
+        let dy = to.rank() as i8 - from.rank() as i8;
+        let orthogonal = dx == 0 || dy == 0;
+        let diagonal = dx.abs() == dy.abs();
+        if !(orthogonal || diagonal) {
+            return BitBoard::EMPTY;
         }
-        let rook_ray = get_rook_moves(from, blockers);
-        if rook_ray.has(to) {
-            return BitBoard(rook_ray.0 & get_rook_moves(to, blockers).0);
+        let dx = dx.signum();
+        let dy = dy.signum();
+        let mut square = from.offset(dx, dy);
+        let mut between = BitBoard::EMPTY;
+        while square as u8 != to as u8 {
+            between.0 |= square.bitboard().0;
+            square = square.offset(dx, dy);
         }
-        BitBoard::EMPTY
+        between
     }
     const TABLE: [[BitBoard; Square::NUM]; Square::NUM] = {
         let mut table = [[BitBoard::EMPTY; Square::NUM]; Square::NUM];

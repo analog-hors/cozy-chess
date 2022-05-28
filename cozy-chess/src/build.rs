@@ -5,20 +5,44 @@ use std::fs::File;
 
 use cozy_chess_types::*;
 
+fn write_moves(
+    table: &mut [BitBoard],
+    relevant_blockers: impl Fn(Square) -> BitBoard,
+    table_index: impl Fn(Square, BitBoard) -> usize,
+    slider_moves: impl Fn(Square, BitBoard) -> BitBoard
+) {
+    for &square in &Square::ALL {
+        let mask = relevant_blockers(square);
+        let mut blockers = BitBoard::EMPTY;
+        loop {
+            table[table_index(square, blockers)] = slider_moves(square, blockers);
+
+            // Carry-Rippler trick that enumerates all subsets of the mask, getting us all blockers.
+            // https://www.chessprogramming.org/Traversing_Subsets_of_a_Set#All_Subsets_of_any_Set
+            blockers = blockers.wrapping_sub(mask) & mask;
+            if blockers.is_empty() {
+                break;
+            }
+        }
+    }
+}
+
 fn main() {
-    let mut table = [BitBoard::EMPTY; 87988];
-    write_moves(&mut table, BISHOP_MAGICS, BISHOP_INDEX_BITS, &[
-        (1, 1),
-        (1, -1),
-        (-1, -1),
-        (-1, 1)
-    ]);
-    write_moves(&mut table, ROOK_MAGICS, ROOK_INDEX_BITS, &[
-        (1, 0),
-        (0, -1),
-        (-1, 0),
-        (0, 1)
-    ]);
+    println!("cargo:rerun-if-changed=build.rs");
+
+    let mut table = [BitBoard::EMPTY; SLIDING_MOVE_TABLE_SIZE];
+    write_moves(
+        &mut table,
+        get_rook_relevant_blockers,
+        get_rook_moves_index,
+        get_rook_moves_slow
+    );
+    write_moves(
+        &mut table,
+        get_bishop_relevant_blockers,
+        get_bishop_moves_index,
+        get_bishop_moves_slow
+    );
 
     let mut out_file: PathBuf = std::env::var("OUT_DIR").unwrap().into();
     out_file.push("sliding_moves.rs");
@@ -28,35 +52,4 @@ fn main() {
         write!(&mut out_file, "{},", magic.0).unwrap();
     }
     write!(&mut out_file, "];").unwrap();
-}
-
-fn write_moves(table: &mut [BitBoard; 87988], magics: &[BlackMagicEntry; Square::NUM], index_bits: usize, deltas: &[(i8, i8); 4]) {
-    for &square in &Square::ALL {
-        let magic = &magics[square as usize];
-        let mask = !magic.mask;
-
-        let mut blockers = BitBoard::EMPTY;
-        loop {
-            let mut moves = BitBoard::EMPTY;
-            for &(df, dr) in deltas {
-                let mut square = square;
-                while !blockers.has(square) {
-                    if let Some(sq) = square.try_offset(df, dr) {
-                        square = sq;
-                        moves |= square.bitboard();
-                    } else {
-                        break;
-                    }
-                }
-            }
-            table[get_magic_index(magics, index_bits, blockers, square)] = moves;
-
-            //Carry-Rippler trick that enumerates all subsets of the mask, getting us all blockers.
-            //https://www.chessprogramming.org/Traversing_Subsets_of_a_Set#All_Subsets_of_any_Set
-            blockers = blockers.wrapping_sub(mask) & mask;
-            if blockers.is_empty() {
-                break;
-            }
-        }
-    }
 }
