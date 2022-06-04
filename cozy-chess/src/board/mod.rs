@@ -170,11 +170,11 @@ impl Board {
     /// board.play_unchecked("e8e7".parse().unwrap());
     /// let expected: Board = "rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3"
     ///    .parse().unwrap();
-    /// assert_eq!(expected.hash(), board.hash());
+    /// assert_eq!(expected.hash(true), board.hash(true));
     /// ```
     #[inline(always)]
-    pub fn hash(&self) -> u64 {
-        self.inner.hash()
+    pub fn hash(&self, include_ep: bool) -> u64 {
+        self.inner.hash(include_ep)
     }
 
     /// Get the pinned pieces for the side to move.
@@ -683,9 +683,9 @@ mod tests {
         ];
         for &(mv, expected) in MOVES {
             board.play_unchecked(mv.parse().unwrap());
-            println!("{}, {}", mv, board.hash());
+            println!("{}, {}", mv, board.hash(true));
             assert_eq!(format!("{}", board), expected);
-            assert_eq!(board.hash(), expected.parse::<Board>().unwrap().hash());
+            assert_eq!(board.hash(true), expected.parse::<Board>().unwrap().hash(true));
         }
     }
 }

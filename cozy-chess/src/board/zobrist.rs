@@ -119,8 +119,14 @@ impl ZobristBoard {
     }
 
     #[inline(always)]
-    pub fn hash(&self) -> u64 {
-        self.hash
+    pub fn hash(&self, include_ep: bool) -> u64 {
+        let mut hash = self.hash;
+        if !include_ep {
+            if let Some(file) = self.en_passant {
+                hash ^= ZOBRIST.en_passant[file as usize];
+            }
+        }
+        hash
     }
 
     #[inline(always)]
@@ -202,7 +208,7 @@ mod tests {
                     for mv in moves {
                         board.play_unchecked(mv.parse().unwrap());
                     }
-                    board.hash()
+                    board.hash(true)
                 });
             assert_eq!(hashes.next().unwrap(), hashes.next().unwrap(), "Test {}", i + 1);
         }

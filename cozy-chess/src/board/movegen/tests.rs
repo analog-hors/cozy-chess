@@ -145,7 +145,7 @@ make_perft_test! {
 #[test]
 fn subset_movegen_kiwipete() {
     fn visit(board: &Board, depth: u8) {
-        let random = board.hash();
+        let random = board.hash(true);
         let subset_a = BitBoard(random);
         let subset_b = !subset_a;
         let mut subset_moves = 0;
