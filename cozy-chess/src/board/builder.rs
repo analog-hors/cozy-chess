@@ -26,14 +26,165 @@ pub struct BoardBuilder {
     pub fullmove_number: NonZeroU16
 }
 
-/// Note: This function is implemented by parsing a FEN string, which could be expensive.
 impl Default for BoardBuilder {
     fn default() -> Self {
-        BoardBuilder::from_board(&Board::default()).unwrap()
+        BoardBuilder::startpos()
     }
 }
 
 impl BoardBuilder {
+    /// Get an empty builder. All fields are set to their empty values.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let builder = BoardBuilder::empty();
+    /// for &square in &Square::ALL {
+    ///     assert!(builder.square(square).is_none());
+    /// }
+    /// ```
+    pub fn empty() -> Self {
+        Self {
+            board: [None; Square::NUM],
+            side_to_move: Color::White,
+            castle_rights: [CastleRights::EMPTY; Color::NUM],
+            en_passant: None,
+            halfmove_clock: 0,
+            fullmove_number: 1.try_into().unwrap()
+        }
+    }
+
+    /// Get a builder set to the default start position.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let startpos = Board::default();
+    /// let builder = BoardBuilder::default();
+    /// assert_eq!(builder.build().unwrap(), startpos);
+    /// ```
+    pub fn startpos() -> Self {
+        Self::chess960_startpos(518)
+    }
+
+    /// Get a builder set to a chess960 start position.
+    /// Converts a [scharnagl number](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
+    /// to its corresponding position.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let startpos = Board::default();
+    /// // 518 is the scharnagl number for the default start position.
+    /// let builder = BoardBuilder::chess960_startpos(518);
+    /// assert_eq!(builder.build().unwrap(), startpos);
+    /// ```
+    pub fn chess960_startpos(scharnagl_number: u32) -> Self {
+        Self::double_chess960_startpos(scharnagl_number, scharnagl_number)
+    }
+
+    /// Get a builder set to a double chess960 start position.
+    /// Uses two [scharnagl numbers](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
+    /// for the initial setup for white and the initial setup for black.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let startpos = Board::default();
+    /// // 518 is the scharnagl number for the default start position.
+    /// let builder = BoardBuilder::double_chess960_startpos(518, 518);
+    /// assert_eq!(builder.build().unwrap(), startpos);
+    /// ```
+    pub fn double_chess960_startpos(white_scharnagl_number: u32, black_scharnagl_number: u32) -> Self {
+        let mut this = Self::empty();
+        this.write_piece_config(white_scharnagl_number, Color::White);
+        this.write_piece_config(black_scharnagl_number, Color::Black);
+        this
+    }
+
+    fn write_piece_config(&mut self, scharnagl_number: u32, color: Color) {
+        assert!(scharnagl_number < 960, "Scharnagl number must be in range 0..960");
+        
+        let n = scharnagl_number;
+        let (n, light_bishop) = (n / 4, n % 4);
+        let (n, dark_bishop) = (n / 4, n % 4);
+        let (n, queen) = (n / 6, n % 6);
+        let knights = n;
+
+        let back_rank = Rank::First.relative_to(color);
+
+        let mut free_squares = back_rank.bitboard();
+
+        let light_bishop = match light_bishop {
+            0 => File::B,
+            1 => File::D,
+            2 => File::F,
+            3 => File::H,
+            _ => unreachable!()
+        };
+        let light_bishop = Square::new(light_bishop, back_rank);
+        free_squares ^= light_bishop.bitboard();
+
+        let dark_bishop = match dark_bishop {
+            0 => File::A,
+            1 => File::C,
+            2 => File::E,
+            3 => File::G,
+            _ => unreachable!()
+        };
+        let dark_bishop = Square::new(dark_bishop, back_rank);
+        free_squares ^= dark_bishop.bitboard();
+
+        let queen = free_squares.iter().nth(queen as usize).unwrap();
+        free_squares ^= queen.bitboard();
+
+        let (left_knight, right_knight) = match knights {
+            0 => (0, 1),
+            1 => (0, 2),
+            2 => (0, 3),
+            3 => (0, 4),
+
+            4 => (1, 2),
+            5 => (1, 3),
+            6 => (1, 4),
+
+            7 => (2, 3),
+            8 => (2, 4),
+            
+            9 => (3, 4),
+
+            _ => unreachable!()
+        };
+        let left_knight = free_squares.iter().nth(left_knight).unwrap();
+        let right_knight = free_squares.iter().nth(right_knight).unwrap();
+        free_squares ^= left_knight.bitboard();
+        free_squares ^= right_knight.bitboard();
+
+        let left_rook = free_squares.next_square().unwrap();
+        free_squares ^= left_rook.bitboard();
+
+        let king = free_squares.next_square().unwrap();
+        free_squares ^= king.bitboard();
+
+        let right_rook = free_squares.next_square().unwrap();
+        free_squares ^= right_rook.bitboard();
+
+        *self.square_mut(light_bishop) = Some((Piece::Bishop, color));
+        *self.square_mut(dark_bishop)  = Some((Piece::Bishop, color));
+        *self.square_mut(queen)        = Some((Piece::Queen, color));
+        *self.square_mut(left_knight)  = Some((Piece::Knight, color));
+        *self.square_mut(right_knight) = Some((Piece::Knight, color));
+        *self.square_mut(left_rook)    = Some((Piece::Rook, color));
+        *self.square_mut(king)         = Some((Piece::King, color));
+        *self.square_mut(right_rook)   = Some((Piece::Rook, color));
+
+        let pawn_rank = Rank::Second.relative_to(color);
+        for square in pawn_rank.bitboard() {
+            *self.square_mut(square) = Some((Piece::Pawn, color));
+        }
+
+        *self.castle_rights_mut(color) = CastleRights {
+            short: Some(right_rook.file()),
+            long: Some(left_rook.file())
+        };
+    }
+
     /// Create a builder from a [`Board`].
     /// # Errors
     /// This will error (return [`None`]) if the board is invalid.
@@ -64,26 +215,6 @@ impl BoardBuilder {
         this.halfmove_clock = board.halfmove_clock();
         this.fullmove_number = board.fullmove_number().try_into().unwrap();
         Some(this)
-    }
-
-    /// Get an empty builder. All fields are set to their empty values.
-    /// # Examples
-    /// ```
-    /// # use cozy_chess::*;
-    /// let builder = BoardBuilder::empty();
-    /// for &square in &Square::ALL {
-    ///     assert!(builder.square(square).is_none());
-    /// }
-    /// ```
-    pub fn empty() -> Self {
-        Self {
-            board: [None; Square::NUM],
-            side_to_move: Color::White,
-            castle_rights: [CastleRights::EMPTY; Color::NUM],
-            en_passant: None,
-            halfmove_clock: 0,
-            fullmove_number: 1.try_into().unwrap()
-        }
     }
 
     /// Get a square on the board.
@@ -234,9 +365,20 @@ mod tests {
 
     #[test]
     fn roundtrip_board() {
-        for fen in include_str!("test_data/valid.sfens").lines() {
-            let board = Board::from_fen(&fen, true).unwrap();
+        let positions = include_str!("test_data/valid.sfens");
+        for fen in positions.lines() {
+            let board = Board::from_fen(fen, true).unwrap();
             let builder = BoardBuilder::from_board(&board).unwrap();
+            assert_eq!(builder.build().unwrap(), board);
+        }
+    }
+
+    #[test]
+    fn scharnagl_to_board() {
+        let positions = include_str!("test_data/chess960_start_positions.sfens");
+        for (scharnagl_number, fen) in positions.lines().enumerate() {
+            let board = Board::from_fen(fen, true).unwrap();
+            let builder = BoardBuilder::chess960_startpos(scharnagl_number as u32);
             assert_eq!(builder.build().unwrap(), board);
         }
     }

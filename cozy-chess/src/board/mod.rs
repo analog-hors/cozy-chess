@@ -35,13 +35,54 @@ pub struct Board {
 }
 
 impl Default for Board {
-    /// Note: This function is implemented by parsing a FEN string, which could be expensive.
     fn default() -> Self {
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".parse().unwrap()
+        BoardBuilder::default().build().unwrap()
     }
 }
 
 impl Board {
+    /// Get a board with the default start position.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let startpos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1".parse().unwrap();
+    /// let board = Board::default();
+    /// assert_eq!(board, startpos);
+    /// ```
+    pub fn startpos() -> Self {
+        BoardBuilder::startpos().build().unwrap()
+    }
+
+    /// Get a board with a chess960 start position.
+    /// Converts a [scharnagl number](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
+    /// to its corresponding position.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let startpos = Board::default();
+    /// // 518 is the scharnagl number for the default start position.
+    /// let board = Board::chess960_startpos(518);
+    /// assert_eq!(board, startpos);
+    /// ```
+    pub fn chess960_startpos(scharnagl_number: u32) -> Self {
+        BoardBuilder::chess960_startpos(scharnagl_number).build().unwrap()
+    }
+
+    /// Get a board with a double chess960 start position.
+    /// Uses two [scharnagl numbers](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
+    /// for the initial setup for white and the initial setup for black.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let startpos = Board::default();
+    /// // 518 is the scharnagl number for the default start position.
+    /// let board = Board::double_chess960_startpos(518, 518);
+    /// assert_eq!(board, startpos);
+    /// ```
+    pub fn double_chess960_startpos(white_scharnagl_number: u32, black_scharnagl_number: u32) -> Self {
+        BoardBuilder::double_chess960_startpos(white_scharnagl_number, black_scharnagl_number).build().unwrap()
+    }
+
     /// Get a [`BitBoard`] of all the pieces of a certain type
     /// # Examples
     /// ```
