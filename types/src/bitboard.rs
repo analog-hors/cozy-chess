@@ -1,115 +1,84 @@
 use crate::*;
 
+use core::ops::*;
+
 /// A [bitboard](https://www.chessprogramming.org/Bitboards).
-/// This represents some set of squares on a chessboard.
+/// A bitboard is an ordered set of squares.
+/// 
+/// Operators are overloaded to work as set operations accordingly:
+/// ```
+/// # use cozy_chess_types::*;
+/// let a1 = Square::A1.bitboard();
+/// let b1 = Square::B1.bitboard();
+/// let c1 = Square::C1.bitboard();
+/// let x = a1 | b1;
+/// let y = a1 | c1;
+/// // Union
+/// assert_eq!(x | y, a1 | b1 | c1);
+/// // Intersection
+/// assert_eq!(x & y, a1);
+/// // Symmetric difference
+/// assert_eq!(x ^ y, b1 | c1);
+/// // Difference
+/// assert_eq!(x - y, b1);
+/// // Complement
+/// assert_eq!(!x, BitBoard::FULL - x);
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct BitBoard(pub u64);
+pub struct BitBoard(
+    /// The backing [`u64`]. A square is present in the set if the bit at `1 << square as u8` is set.
+    pub u64
+);
 
 macro_rules! impl_math_ops {
-    ($($trait:ident,$fn:ident;)*) => {
-        $(
-            impl core::ops::$trait for BitBoard {
-                type Output = Self;
-    
-                #[inline(always)]
-                fn $fn(self, other: Self) -> Self::Output {
-                    Self(core::ops::$trait::$fn(self.0, other.0))
-                }
+    ($($trait:ident, $fn:ident;)*) => {$(
+        impl $trait for BitBoard {
+            type Output = Self;
+
+            #[inline(always)]
+            fn $fn(self, rhs: Self) -> Self::Output {
+                Self($trait::$fn(self.0, rhs.0))
             }
-        )*
-    };
+        }
+    )*};
 }
 impl_math_ops! {
-    Add, add;
-    Sub, sub;
-    Mul, mul;
-    Div, div;
     BitAnd, bitand;
     BitOr, bitor;
     BitXor, bitxor;
 }
 
 macro_rules! impl_math_assign_ops {
-    ($($trait:ident,$fn:ident;)*) => {
-        $(
-            impl core::ops::$trait for BitBoard {
-                #[inline(always)]
-                fn $fn(&mut self, other: Self) {
-                    core::ops::$trait::$fn(&mut self.0, other.0)
-                }
+    ($($trait:ident, $fn:ident;)*) => {$(
+        impl $trait for BitBoard {
+            #[inline(always)]
+            fn $fn(&mut self, rhs: Self) {
+                $trait::$fn(&mut self.0, rhs.0)
             }
-        )*
-    };
+        }
+    )*};
 }
 impl_math_assign_ops! {
-    AddAssign, add_assign;
-    SubAssign, sub_assign;
-    MulAssign, mul_assign;
-    DivAssign, div_assign;
     BitAndAssign, bitand_assign;
     BitOrAssign, bitor_assign;
     BitXorAssign, bitxor_assign;
 }
 
-macro_rules! impl_shift_ops_for {
-    ($type:ident; $($trait:ident,$fn:ident;)*) => {
-        $(
-            impl core::ops::$trait<$type> for BitBoard {
-                type Output = Self;
-    
-                #[inline(always)]
-                fn $fn(self, other: $type) -> Self::Output {
-                    Self(core::ops::$trait::$fn(self.0, other))
-                }
-            }
-        )*
-    };
-}
-macro_rules! impl_shift_assign_ops_for {
-    ($type:ident; $($trait:ident,$fn:ident;)*) => {
-        $(
-            impl core::ops::$trait<$type> for BitBoard {
-                #[inline(always)]
-                fn $fn(&mut self, other: $type) {
-                    core::ops::$trait::$fn(&mut self.0, other)
-                }
-            }
-        )*
-    };
-}
-macro_rules! impl_shift_assign_ops {
-    ($($type:ident),*) => {
-        $(impl_shift_ops_for! {
-            $type;
-            Shl, shl;
-            Shr, shr;
-        }
-    
-        impl_shift_assign_ops_for! {
-            $type;
-            ShlAssign, shl_assign;
-            ShrAssign, shr_assign;
-        })*
-    };
-}
-impl_shift_assign_ops!(i8, u8, i16, u16, i32, u32, i64, u64, isize, usize);
+impl Sub for BitBoard {
+    type Output = Self;
 
-macro_rules! impl_wrapping_ops {
-    ($($fn:ident),*) => {
-        impl BitBoard {
-            $(
-                #[doc = concat!("See [`u64::", stringify!($fn), "`].")]
-                #[inline(always)]
-                pub const fn $fn(self, other: Self) -> Self {
-                    Self(self.0.$fn(other.0))
-                }
-            )*
-        }
-    };
+    fn sub(self, rhs: Self) -> Self::Output {
+        self & !rhs
+    }
 }
-impl_wrapping_ops!(wrapping_add, wrapping_mul, wrapping_sub, wrapping_div);
 
-impl core::ops::Not for BitBoard {
+impl SubAssign for BitBoard {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
+    }
+}
+
+impl Not for BitBoard {
     type Output = Self;
 
     #[inline(always)]
@@ -118,8 +87,19 @@ impl core::ops::Not for BitBoard {
     }
 }
 
+macro_rules! impl_convert {
+    ($($type:ty),*) => {$(
+        impl From<$type> for BitBoard {
+            fn from(value: $type) -> Self {
+                value.bitboard()
+            }
+        }
+    )*};
+}
+impl_convert!(File, Rank, Square);
+
 impl BitBoard {
-    /// An empty [`BitBoard`].
+    /// An empty bitboard.
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
@@ -136,7 +116,7 @@ impl BitBoard {
     /// ```
     pub const EMPTY: Self = Self(0);
 
-    /// A [`BitBoard`] with every square.
+    /// A bitboard with every square.
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
@@ -236,7 +216,7 @@ impl BitBoard {
     /// ```
     #[inline(always)]
     pub const fn flip_files(self) -> Self {
-        //https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Horizontal
+        // https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#Horizontal
         const K1: u64 = 0x5555555555555555;
         const K2: u64 = 0x3333333333333333;
         const K4: u64 = 0x0F0F0F0F0F0F0F0F;
@@ -247,7 +227,7 @@ impl BitBoard {
         Self(new)
     }
 
-    /// Count the number of squares in the bitboard
+    /// Count the number of squares in the bitboard.
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
@@ -288,7 +268,69 @@ impl BitBoard {
     /// ```
     #[inline(always)]
     pub const fn has(self, square: Square) -> bool {
-        self.0 & square.bitboard().0 != BitBoard::EMPTY.0
+        self.is_superset(square.bitboard())
+    }
+
+    /// Check if a bitboard is a subset of another.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// let bb = bitboard! {
+    ///     . . . . . . . .
+    ///     . X X X X X . .
+    ///     . X X X X X X .
+    ///     . X X . X X X .
+    ///     . X X X X X X .
+    ///     . X X X X X . .
+    ///     . X X . X X . .
+    ///     . . . . . . . .
+    /// };
+    /// let subset = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// assert!(subset.is_subset(bb));
+    /// ```
+    #[inline(always)]
+    pub const fn is_subset(self, other: BitBoard) -> bool {
+        other.0 & self.0 == self.0
+    }
+
+    /// Check if a bitboard is a superset of another.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// let bb = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// let superset = bitboard! {
+    ///     . . . . . . . .
+    ///     . X X X X X . .
+    ///     . X X X X X X .
+    ///     . X X . X X X .
+    ///     . X X X X X X .
+    ///     . X X X X X . .
+    ///     . X X . X X . .
+    ///     . . . . . . . .
+    /// };
+    /// assert!(superset.is_superset(bb));
+    /// ```
+    #[inline(always)]
+    pub const fn is_superset(self, other: BitBoard) -> bool {
+        other.is_subset(self)
     }
 
     /// Checks if the [`BitBoard`] is empty.
@@ -313,7 +355,7 @@ impl BitBoard {
         self.0 == BitBoard::EMPTY.0
     }
 
-    /// Grabs the least significant square, if it exists.
+    /// Grabs the first square if the bitboard is not empty.
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
@@ -335,9 +377,46 @@ impl BitBoard {
         Square::try_index(self.0.trailing_zeros() as usize)
     }
 
+    /// Iterate the squares in the bitboard, ordered by square.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// let bitboard = BitBoard::FULL;
+    /// let squares = &Square::ALL;
+    /// for (s1, &s2) in bitboard.iter().zip(squares) {
+    ///     assert_eq!(s1, s2);
+    /// }
+    /// ```
     #[inline(always)]
-    pub fn iter(&self) -> BitBoardIter {
-        self.into_iter()
+    pub fn iter(self) -> BitBoardIter {
+        BitBoardIter(self)
+    }
+
+    /// Iterate all subsets of a bitboard.
+    /// Subsets are produced in lexicographic order; Each subset is greater than the last.
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// let bb = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// for subset in bb.iter_subsets() {
+    ///     assert!(subset.is_subset(bb));
+    /// }
+    /// ```
+    #[inline(always)]
+    pub fn iter_subsets(self) -> BitBoardSubsetIter {
+        BitBoardSubsetIter {
+            set: self,
+            subset: BitBoard::EMPTY,
+            finished: false
+        }
     }
 }
 
@@ -346,11 +425,15 @@ impl IntoIterator for BitBoard {
 
     type IntoIter = BitBoardIter;
 
+    #[inline(always)]
     fn into_iter(self) -> Self::IntoIter {
-        BitBoardIter(self)
+        self.iter()
     }
 }
 
+/// An iterator to maintain state while iterating another iterator.
+/// 
+/// This `struct` is created by [`BitBoard::iter`]. See its documentation for more.
 pub struct BitBoardIter(BitBoard);
 
 impl Iterator for BitBoardIter {
@@ -375,6 +458,32 @@ impl ExactSizeIterator for BitBoardIter {
     #[inline(always)]
     fn len(&self) -> usize {
         self.0.popcnt() as usize
+    }
+}
+
+/// An iterator over the subsets of a BitBoard.
+/// 
+/// This `struct` is created by [`BitBoard::iter_subsets`]. See its documentation for more.
+pub struct BitBoardSubsetIter {
+    set: BitBoard,
+    subset: BitBoard,
+    finished: bool
+}
+
+impl Iterator for BitBoardSubsetIter {
+    type Item = BitBoard;
+
+    #[inline(always)]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.finished {
+            return None;
+        }
+        let current = self.subset;
+        // Carry-Rippler trick to enumerate all subsets of a set.
+        // https://www.chessprogramming.org/Traversing_Subsets_of_a_Set#All_Subsets_of_any_Set
+        self.subset.0 = self.subset.0.wrapping_sub(self.set.0) & self.set.0;
+        self.finished = self.subset.is_empty();
+        Some(current)
     }
 }
 

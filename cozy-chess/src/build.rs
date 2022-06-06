@@ -13,16 +13,8 @@ fn write_moves(
 ) {
     for &square in &Square::ALL {
         let mask = relevant_blockers(square);
-        let mut blockers = BitBoard::EMPTY;
-        loop {
+        for blockers in mask.iter_subsets() {
             table[table_index(square, blockers)] = slider_moves(square, blockers);
-
-            // Carry-Rippler trick that enumerates all subsets of the mask, getting us all blockers.
-            // https://www.chessprogramming.org/Traversing_Subsets_of_a_Set#All_Subsets_of_any_Set
-            blockers = blockers.wrapping_sub(mask) & mask;
-            if blockers.is_empty() {
-                break;
-            }
         }
     }
 }

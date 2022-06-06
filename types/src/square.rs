@@ -5,6 +5,7 @@ use crate::*;
 
 crate::helpers::simple_enum! {
     /// A square on a chessboard.
+    /// Squares are ordered in rank-major order (A1, B1, C1, ... H8).
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
     pub enum Square {
         A1, B1, C1, D1, E1, F1, G1, H1,
