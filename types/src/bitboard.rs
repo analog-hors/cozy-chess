@@ -431,7 +431,7 @@ impl IntoIterator for BitBoard {
     }
 }
 
-/// An iterator to maintain state while iterating another iterator.
+/// An iterator over the squares of a bitboard.
 /// 
 /// This `struct` is created by [`BitBoard::iter`]. See its documentation for more.
 pub struct BitBoardIter(BitBoard);
@@ -461,7 +461,7 @@ impl ExactSizeIterator for BitBoardIter {
     }
 }
 
-/// An iterator over the subsets of a BitBoard.
+/// An iterator over the subsets of a bitboard.
 /// 
 /// This `struct` is created by [`BitBoard::iter_subsets`]. See its documentation for more.
 pub struct BitBoardSubsetIter {

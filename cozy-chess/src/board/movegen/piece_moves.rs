@@ -56,7 +56,7 @@ impl PieceMoves {
     }
 }
 
-///Iterator for [`PieceMoves`].
+/// Iterator over the moves in a [`PieceMoves`] instance.
 pub struct PieceMovesIter {
     moves: PieceMoves,
     promotion: u8
