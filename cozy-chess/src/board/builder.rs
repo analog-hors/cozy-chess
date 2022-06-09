@@ -1,5 +1,3 @@
-use core::num::NonZeroU16;
-
 use crate::*;
 
 use super::zobrist::ZobristBoard;
@@ -23,7 +21,7 @@ pub struct BoardBuilder {
     pub castle_rights: [CastleRights; Color::NUM],
     pub en_passant: Option<Square>,
     pub halfmove_clock: u8,
-    pub fullmove_number: NonZeroU16
+    pub fullmove_number: u16
 }
 
 impl Default for BoardBuilder {
@@ -49,7 +47,7 @@ impl BoardBuilder {
             castle_rights: [CastleRights::EMPTY; Color::NUM],
             en_passant: None,
             halfmove_clock: 0,
-            fullmove_number: 1.try_into().unwrap()
+            fullmove_number: 1
         }
     }
 
@@ -217,7 +215,7 @@ impl BoardBuilder {
         let en_passant_rank = Rank::Third.relative_to(!board.side_to_move());
         this.en_passant = board.en_passant().map(|f| Square::new(f, en_passant_rank));
         this.halfmove_clock = board.halfmove_clock();
-        this.fullmove_number = board.fullmove_number().try_into().unwrap();
+        this.fullmove_number = board.fullmove_number();
         Some(this)
     }
 
