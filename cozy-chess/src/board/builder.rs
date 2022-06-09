@@ -68,6 +68,8 @@ impl BoardBuilder {
     /// Get a builder set to a chess960 start position.
     /// Converts a [scharnagl number](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
     /// to its corresponding position.
+    /// # Panics
+    /// Panic if the scharnagl number is invalid (not within the range 0..960).
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -83,6 +85,8 @@ impl BoardBuilder {
     /// Get a builder set to a double chess960 start position.
     /// Uses two [scharnagl numbers](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
     /// for the initial setup for white and the initial setup for black.
+    /// # Panics
+    /// Panic if either scharnagl number is invalid (not within the range 0..960).
     /// # Examples
     /// ```
     /// # use cozy_chess::*;

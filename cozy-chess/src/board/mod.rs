@@ -56,6 +56,8 @@ impl Board {
     /// Get a board with a chess960 start position.
     /// Converts a [scharnagl number](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
     /// to its corresponding position.
+    /// # Panics
+    /// Panic if either scharnagl number is invalid (not within the range 0..960).
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -71,6 +73,8 @@ impl Board {
     /// Get a board with a double chess960 start position.
     /// Uses two [scharnagl numbers](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
     /// for the initial setup for white and the initial setup for black.
+    /// # Panics
+    /// Panic if either scharnagl number is invalid (not within the range 0..960).
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -83,7 +87,7 @@ impl Board {
         BoardBuilder::double_chess960_startpos(white_scharnagl_number, black_scharnagl_number).build().unwrap()
     }
 
-    /// Get a [`BitBoard`] of all the pieces of a certain type
+    /// Get a [`BitBoard`] of all the pieces of a certain type.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -105,7 +109,7 @@ impl Board {
         self.inner.pieces(piece)
     }
 
-    /// Get a [`BitBoard`] of all the pieces of a certain color
+    /// Get a [`BitBoard`] of all the pieces of a certain color.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -127,7 +131,7 @@ impl Board {
         self.inner.colors(color)
     }
 
-    /// Get a [`BitBoard`] of all the pieces on the board
+    /// Get a [`BitBoard`] of all the pieces on the board.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;

@@ -63,17 +63,6 @@ impl Square {
         Self::index_const(((rank as usize) << 3) | file as usize)
     }
 
-    /// Get the rank of this square.
-    /// # Examples
-    /// ```
-    /// # use cozy_chess_types::*;
-    /// assert_eq!(Square::A1.rank(), Rank::First);
-    /// ```    
-    #[inline(always)]
-    pub const fn rank(self) -> Rank {
-        Rank::index_const(self as usize >> 3)
-    }
-
     /// Get the file of this square.
     /// # Examples
     /// ```
@@ -83,6 +72,17 @@ impl Square {
     #[inline(always)]
     pub const fn file(self) -> File {
         File::index_const(self as usize & 0b000111)
+    }
+
+    /// Get the rank of this square.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(Square::A1.rank(), Rank::First);
+    /// ```
+    #[inline(always)]
+    pub const fn rank(self) -> Rank {
+        Rank::index_const(self as usize >> 3)
     }
 
     /// Get a bitboard with this square set.

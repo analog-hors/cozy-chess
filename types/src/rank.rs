@@ -60,8 +60,8 @@ impl Rank {
         BitBoard(0b11111111 << (self as usize * 8))
     }
 
-    /// Get a rank relative to some color. This effectively
-    /// flips the rank if viewing from black's perspective.
+    /// Get a rank relative to some color.
+    /// This flips the rank if viewing from black's perspective.
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;

@@ -381,9 +381,9 @@ impl BitBoard {
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
-    /// let bitboard = BitBoard::FULL;
+    /// let bb = BitBoard::FULL;
     /// let squares = &Square::ALL;
-    /// for (s1, &s2) in bitboard.iter().zip(squares) {
+    /// for (s1, &s2) in bb.iter().zip(squares) {
     ///     assert_eq!(s1, s2);
     /// }
     /// ```
