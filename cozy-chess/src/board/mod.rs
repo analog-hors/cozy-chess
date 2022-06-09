@@ -222,6 +222,24 @@ impl Board {
         self.inner.hash()
     }
 
+    /// Get the incrementally updated position hash without en passant information.
+    /// Does not include the halfmove clock or fullmove number.
+    /// This may be used for equivalence checks if en passant is not relevant.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let has_ep: Board = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+    ///    .parse().unwrap();
+    /// let no_ep: Board = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 4 3"
+    ///    .parse().unwrap();
+    /// assert_ne!(has_ep.hash(), no_ep.hash());
+    /// assert_eq!(has_ep.hash_without_ep(), no_ep.hash());
+    /// ```
+    #[inline(always)]
+    pub fn hash_without_ep(&self) -> u64 {
+        self.inner.hash_without_ep()
+    }
+
     /// Get the pinned pieces for the side to move.
     /// Note that this counts pieces regardless of color.
     /// This counts any piece preventing check on our king.

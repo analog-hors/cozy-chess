@@ -124,6 +124,15 @@ impl ZobristBoard {
     }
 
     #[inline(always)]
+    pub fn hash_without_ep(&self) -> u64 {
+        let mut hash = self.hash;
+        if let Some(file) = self.en_passant {
+            hash ^= ZOBRIST.en_passant[file as usize];
+        }
+        hash
+    }
+
+    #[inline(always)]
     pub fn xor_square(&mut self, piece: Piece, color: Color, square: Square) {
         let square_bb = square.bitboard();
         self.pieces[piece as usize] ^= square_bb;
