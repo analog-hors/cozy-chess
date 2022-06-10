@@ -13,21 +13,20 @@ struct ZobristConstants {
     black_to_move: u64
 }
 
-#[allow(clippy::eval_order_dependence)]
 const ZOBRIST: ZobristConstants = {
-    //Simple Pcg64Mcg impl
+    // Simple Pcg64Mcg impl
     let mut state = 0x7369787465656E2062797465206E756Du128 | 1;
     macro_rules! rand {
         () => {{
             state = state.wrapping_mul(0x2360ED051FC65DA44385DF649FCCF645);
             let rot = (state >> 122) as u32;
-            let xsl = ((state >> 64) as u64) ^ (state as u64);
+            let xsl = (state >> 64) as u64 ^ state as u64;
             xsl.rotate_right(rot)
         }};
     }
 
     macro_rules! fill_array {
-        ($array:ident { $expr:expr }) => {{
+        ($array:ident: $expr:expr) => {{
             let mut i = 0;
             while i < $array.len() {
                 $array[i] = $expr;
@@ -39,15 +38,13 @@ const ZOBRIST: ZobristConstants = {
     macro_rules! color_zobrist_constant {
         () => {{
             let mut castle_rights = [0; File::NUM];
-            fill_array!(castle_rights { rand!() });
+            fill_array!(castle_rights: rand!());
 
             let mut pieces = [[0; Square::NUM]; Piece::NUM];
-            fill_array!(pieces {
-                {
-                    let mut squares = [0; Square::NUM];
-                    fill_array!(squares { rand!() });
-                    squares
-                }
+            fill_array!(pieces: {
+                let mut squares = [0; Square::NUM];
+                fill_array!(squares: rand!());
+                squares
             });
             
             ColorZobristConstants {
@@ -58,12 +55,17 @@ const ZOBRIST: ZobristConstants = {
     }
 
     let mut en_passant = [0; File::NUM];
-    fill_array!(en_passant { rand!() });
+    fill_array!(en_passant: rand!());
+
+    let white = color_zobrist_constant!();
+    let black = color_zobrist_constant!();
+
+    let black_to_move = rand!();
 
     ZobristConstants {
-        color: [color_zobrist_constant!(), color_zobrist_constant!()],
+        color: [white, black],
         en_passant,
-        black_to_move: rand!()
+        black_to_move
     }
 };
 
@@ -204,16 +206,16 @@ mod tests {
             [["e5g4", "h8h5", "f3f5", "e6f5"], ["f3f5", "e6f5", "e5g4", "h8h5"]],
             [["g2g3", "a8c8", "e5d3", "e7f8"], ["e5d3", "a8c8", "g2g3", "e7f8"]]
         ];
-        for (i, moves) in MOVES.iter().enumerate() {
-            let mut hashes = moves.iter()
-                .map(|moves| {
-                    let mut board = board.clone();
-                    for mv in moves {
-                        board.play_unchecked(mv.parse().unwrap());
-                    }
-                    board.hash()
-                });
-            assert_eq!(hashes.next().unwrap(), hashes.next().unwrap(), "Test {}", i + 1);
+        for (i, [moves_a, moves_b]) in MOVES.iter().enumerate() {
+            let mut board_a = board.clone();
+            let mut board_b = board.clone();
+            for mv in moves_a {
+                board_a.play_unchecked(mv.parse().unwrap());
+            }
+            for mv in moves_b {
+                board_b.play_unchecked(mv.parse().unwrap());
+            }
+            assert_eq!(board_a.hash(), board_b.hash(), "Test {}", i + 1);
         }
     }
 }

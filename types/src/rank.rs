@@ -2,7 +2,7 @@ use crate::*;
 
 crate::helpers::simple_enum! {
     /// A rank on a chessboard.
-    #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
     pub enum Rank {
         First,
         Second,
@@ -57,7 +57,7 @@ impl Rank {
     /// ```
     #[inline(always)]
     pub const fn bitboard(self) -> BitBoard {
-        BitBoard(0b11111111 << (self as usize * 8))
+        BitBoard(0b11111111 << (self as u8 * 8))
     }
 
     /// Get a rank relative to some color.

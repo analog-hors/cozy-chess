@@ -126,31 +126,13 @@ impl Square {
     /// See [`Square::offset`]'s panics.
     #[inline(always)]
     pub const fn try_offset(self, file_offset: i8, rank_offset: i8) -> Option<Square> {
-        macro_rules! const_try {
-            ($expr:expr) => {{
-                // If we write it as an expression, clippy complains we can
-                // use ? even though we can't because it's a const context.
-                // So we have to convert it to this to stick on
-                // #[allow(clippy::question_mark)], because otherwise the
-                // compiler complains. This causes the clippy warning to go
-                // away anyway. Bleh.
-                let ret;
-                #[allow(clippy::question_mark)]
-                if let Some(value) = $expr {
-                    ret = value;
-                } else {
-                    return None;
-                }
-                ret
-            }};
-        }
         let file_index = self.file() as i8 + file_offset;
         let rank_index = self.rank() as i8 + rank_offset;
-        if file_index < 0 || rank_index < 0 {
+        if file_index < 0 || file_index >= 8 || rank_index < 0 || rank_index >= 8 {
             return None;
-        };
-        let file = const_try!(File::try_index(file_index as usize));
-        let rank = const_try!(Rank::try_index(rank_index as usize));
+        }
+        let file = File::index_const(file_index as usize);
+        let rank = Rank::index_const(rank_index as usize);
         Some(Square::new(file, rank))
     }
 

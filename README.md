@@ -44,7 +44,7 @@ let mut total_captures = 0;
 
 let enemy_pieces = board.colors(!board.side_to_move());
 board.generate_moves(|moves| {
-    let mut captures = moves;
+    let mut captures = moves.clone();
     // Bitmask to efficiently get all captures set-wise.
     // Excluding en passant square for convenience.
     captures.to &= enemy_pieces;

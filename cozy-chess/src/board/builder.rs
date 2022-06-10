@@ -353,7 +353,7 @@ impl BoardBuilder {
     }
 
     fn add_fullmove_number(&self, board: &mut Board) -> Result<(), ()> {
-        board.fullmove_number = self.fullmove_number.into();
+        board.fullmove_number = self.fullmove_number;
         if !board.fullmove_number_is_valid() {
             return Err(());
         }

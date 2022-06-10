@@ -11,7 +11,7 @@ pub use movegen::*;
 pub use builder::*;
 
 /// The current state of the game.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GameStatus {
     Won,
     Drawn,
@@ -294,10 +294,10 @@ impl Board {
     /// assert_eq!(board.halfmove_clock(), 0);
     /// board.play_unchecked("e2e4".parse().unwrap());
     /// board.play_unchecked("e7e5".parse().unwrap());
-    /// //Remains at zero for pawn moves
+    /// // Remains at zero for pawn moves
     /// assert_eq!(board.halfmove_clock(), 0);
     /// board.play_unchecked("e1e2".parse().unwrap());
-    /// //Non-pawn move
+    /// // Non-pawn move
     /// assert_eq!(board.halfmove_clock(), 1);
     /// ```
     #[inline(always)]
@@ -310,12 +310,12 @@ impl Board {
     /// ```
     /// # use cozy_chess::*;
     /// let mut board = Board::default();
-    /// //The fullmove number starts at one.
+    /// // The fullmove number starts at one.
     /// assert_eq!(board.fullmove_number(), 1);
     /// board.play_unchecked("e2e4".parse().unwrap());
     /// board.play_unchecked("e7e5".parse().unwrap());
     /// board.play_unchecked("e1e2".parse().unwrap());
-    /// //3 plies is 1.5 moves, which rounds down
+    /// // 3 plies is 1.5 moves, which rounds down
     /// assert_eq!(board.fullmove_number(), 2);
     /// ```
     #[inline(always)]
@@ -453,7 +453,7 @@ impl Board {
     /// board = board.null_move().unwrap();
     /// assert_eq!(board.side_to_move(), Color::Black);
     /// board.play_unchecked("d8h4".parse().unwrap());
-    /// //Can't leave the king in check
+    /// // Can't leave the king in check
     /// assert!(board.null_move().is_none());
     /// ```
     pub fn null_move(&self) -> Option<Board> {
@@ -529,6 +529,7 @@ impl Board {
     }
 
     /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
+    /// Invalid moves may create an invalid board, though this is not guaranteed.
     /// # Panics
     /// This may panic if the board or move is invalid. However, this is not guaranteed.
     /// See [`Board::try_play_unchecked`] for a non-panicking variant.
@@ -575,7 +576,7 @@ impl Board {
         let their_king = self.try_king(!color)?;
         let our_back_rank = Rank::First.relative_to(color);
         let their_back_rank = Rank::First.relative_to(!color);
-        //Castling move encoded as king captures rook.
+        // Castling move encoded as king captures rook.
         let is_castle = (self.colors(color) & (from_bb ^ to_bb)).popcnt() == 2;
         let mut new_en_passant = None;
 
@@ -588,30 +589,30 @@ impl Board {
             self.fullmove_number += 1;
         }
 
-        //Lift the piece
+        // Lift the piece
         self.inner.xor_square(moved, color, mv.from);
         if is_castle {
-            //Lift the rook too
+            // Lift the rook too
             self.inner.xor_square(Piece::Rook, color, mv.to);
 
             let (king, rook) = if mv.from.file() < mv.to.file() {
-                //Short castle
+                // Short castle
                 (File::G, File::F)
             } else {
-                //Long castle
+                // Long castle
                 (File::C, File::D)
             };
-            //Drop in all the pieces.
+            // Drop in all the pieces.
             self.inner.xor_square(Piece::King, color, Square::new(king, our_back_rank));
             self.inner.xor_square(Piece::Rook, color, Square::new(rook, our_back_rank));
             self.inner.set_castle_right(color, true, None);
             self.inner.set_castle_right(color, false, None);
         } else {
-            //Drop the piece
+            // Drop the piece
             self.inner.xor_square(moved, color, mv.to);
             if let Some(victim) = victim {
-                //If victim == piece, the piece was XORed out and this puts it back.
-                //If victim != piece, the victim is still there and this XORs it out.
+                // If victim == piece, the piece was XORed out and this puts it back.
+                // If victim != piece, the victim is still there and this XORs it out.
                 self.inner.xor_square(victim, !color, mv.to);
                 if mv.to.rank() == their_back_rank {
                     let rights = self.inner.castle_rights(!color);
@@ -622,7 +623,7 @@ impl Board {
                     }
                 }
             }
-            //Update checker information
+            // Update checker information
             match moved {
                 Piece::Knight => self.checkers |= get_knight_moves(their_king) & to_bb,
                 Piece::Pawn => {
@@ -633,7 +634,7 @@ impl Board {
                         Rank::Fourth.bitboard().0 | Rank::Fifth.bitboard().0
                     );
                     if let Some(promotion) = mv.promotion {
-                        //Get rid of the pawn and replace it with the promotion. Also update checkers.
+                        // Get rid of the pawn and replace it with the promotion. Also update checkers.
                         self.inner.xor_square(Piece::Pawn, color, mv.to);
                         self.inner.xor_square(promotion, color, mv.to);
                         if promotion == Piece::Knight {
@@ -645,17 +646,17 @@ impl Board {
                         });
                         if !(from_bb & PAWN_DOUBLE_MOVE_FROM).is_empty()
                             && !(to_bb & PAWN_DOUBLE_MOVE_TO).is_empty() {
-                            //Double move, update en passant.
+                            // Double move, update en passant.
                             new_en_passant = Some(mv.to.file());
                         } else if Some(mv.to) == en_passant {
-                            //En passant capture.
+                            // En passant capture.
                             let victim_square = Square::new(
                                 mv.to.file(),
                                 Rank::Fourth.relative_to(!color)
                             );
                             self.inner.xor_square(Piece::Pawn, !color, victim_square);
                         }
-                        //Update checkers.
+                        // Update checkers.
                         self.checkers |= get_pawn_attacks(their_king, !color) & to_bb;
                     }
                 }
@@ -675,7 +676,7 @@ impl Board {
             }
         }
         
-        //Almost there. Just have to update checker and pinned information for sliding pieces.
+        // Almost there. Just have to update checker and pinned information for sliding pieces.
         let our_attackers = self.colors(color) & (
             (get_bishop_rays(their_king) & (
                 self.pieces(Piece::Bishop) |

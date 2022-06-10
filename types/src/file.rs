@@ -1,8 +1,8 @@
 use crate::*;
 
 crate::helpers::simple_enum! {
-    /// A file on a chessboard
-    #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
+    /// A file on a chessboard.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
     pub enum File {
         A,
         B,
@@ -66,7 +66,7 @@ impl File {
             0b00000001,
             0b00000001,
             0b00000001
-        ]) << self as usize)
+        ]) << self as u8)
     }
 
     /// Get a bitboard with all squares on adjacent files set.

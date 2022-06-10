@@ -2,7 +2,7 @@ use crate::*;
 
 /// A compact structure representing multiple moves for a piece on the board.
 /// Iterate it to unpack its moves.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PieceMoves {
     /// The [`Piece`] that is moved.
     pub piece: Piece,
@@ -42,7 +42,7 @@ impl PieceMoves {
 
     /// Check if there are no [`Move`]s.
     pub fn is_empty(&self) -> bool {
-        self.to == BitBoard::EMPTY
+        self.to.is_empty()
     }
 
     /// Check if it contains a given [`Move`].
@@ -67,36 +67,34 @@ impl Iterator for PieceMovesIter {
 
     #[inline(always)]
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(to) = self.moves.to.next_square() {
-            let is_promotion = self.moves.piece == Piece::Pawn &&
-                matches!(to.rank(), Rank::First | Rank::Eighth);
-            let promotion = if is_promotion {
-                let promotion = match self.promotion {
-                    0 => Piece::Knight,
-                    1 => Piece::Bishop,
-                    2 => Piece::Rook,
-                    3 => Piece::Queen,
-                    _ => unreachable!()
-                };
-                if self.promotion < 3 {
-                    self.promotion += 1;
-                } else {
-                    self.promotion = 0;
-                    self.moves.to ^= to.bitboard();
-                }
-                Some(promotion)
-            } else {
-                self.moves.to ^= to.bitboard();
-                None
+        let from = self.moves.from;
+        let to = self.moves.to.next_square()?;
+        let is_promotion = self.moves.piece == Piece::Pawn &&
+            matches!(to.rank(), Rank::First | Rank::Eighth);
+        let promotion = if is_promotion {
+            let promotion = match self.promotion {
+                0 => Piece::Knight,
+                1 => Piece::Bishop,
+                2 => Piece::Rook,
+                3 => Piece::Queen,
+                _ => unreachable!()
             };
-            Some(Move {
-                from: self.moves.from,
-                to,
-                promotion
-            })
+            if self.promotion < 3 {
+                self.promotion += 1;
+            } else {
+                self.promotion = 0;
+                self.moves.to ^= to.bitboard();
+            }
+            Some(promotion)
         } else {
+            self.moves.to ^= to.bitboard();
             None
-        }
+        };
+        Some(Move {
+            from,
+            to,
+            promotion
+        })
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {

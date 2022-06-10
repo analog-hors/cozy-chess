@@ -1,6 +1,7 @@
 crate::helpers::simple_enum! {
     /// A chess piece.
-    #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+    /// Pieces are ordered by approximate material value.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
     pub enum Piece {
         Pawn,
         Knight,

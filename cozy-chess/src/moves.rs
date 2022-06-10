@@ -4,6 +4,7 @@ include!(concat!(env!("OUT_DIR"), "/sliding_moves.rs"));
 
 /// Get the moves for a rook on some square.
 /// See [`get_rook_moves_const`] for a significantly slower `const` variant.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let blockers = bitboard! {
@@ -39,6 +40,7 @@ pub const fn get_rook_moves_const(square: Square, blockers: BitBoard) -> BitBoar
 
 /// Get the moves for a bishop on some square.
 /// See [`get_bishop_moves_const`] for a significantly slower `const` variant.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let blockers = bitboard! {
@@ -73,6 +75,7 @@ pub const fn get_bishop_moves_const(square: Square, blockers: BitBoard) -> BitBo
 }
 
 /// Get the rays for a rook on some square.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let rays = get_rook_rays(Square::D3);
@@ -102,6 +105,7 @@ pub const fn get_rook_rays(square: Square) -> BitBoard {
 }
 
 /// Get the rays for a bishop on some square.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let rays = get_bishop_rays(Square::D3);
@@ -131,6 +135,7 @@ pub const fn get_bishop_rays(square: Square) -> BitBoard {
 }
 
 /// Get all squares between two squares, if reachable via a ray.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let rays = get_between_rays(Square::B4, Square::G4);
@@ -184,6 +189,7 @@ pub const fn get_between_rays(from: Square, to: Square) -> BitBoard {
 }
 
 /// Get a ray on the board that passes through both squares, if it exists.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let rays = get_line_rays(Square::D2, Square::G5);
@@ -230,6 +236,7 @@ pub const fn get_line_rays(from: Square, to: Square) -> BitBoard {
 }
 
 /// Get the knight moves for a knight on some square.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let moves = get_knight_moves(Square::D3);
@@ -280,6 +287,7 @@ pub const fn get_knight_moves(square: Square) -> BitBoard {
 }
 
 /// Get the king moves for a king on some square.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let moves = get_king_moves(Square::D3);
@@ -330,6 +338,7 @@ pub const fn get_king_moves(square: Square) -> BitBoard {
 }
 
 /// Get the pawn attacks for a pawn on some square.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let attacks = get_pawn_attacks(Square::D3, Color::White);
@@ -381,6 +390,7 @@ pub const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
 }
 
 /// Get the pawn forward moves/non-captures for a pawn of some color on some square.
+/// # Examples
 /// ```
 /// # use cozy_chess::*;
 /// let moves = get_pawn_quiets(Square::D2, Color::White, BitBoard::EMPTY);
