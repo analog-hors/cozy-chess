@@ -20,6 +20,7 @@
 ## Examples
 ### Basic example
 ```rust
+# use cozy_chess::*;
 // Start position
 let board = Board::default();
 // Likely a fixed sized stack vector in a real engine
@@ -34,6 +35,7 @@ assert_eq!(move_list.len(), 20);
 
 ### Get capture moves in bulk
 ```rust
+# use cozy_chess::*;
 // Parse position from FEN
 let board = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
     .parse::<Board>()
@@ -60,6 +62,7 @@ assert_eq!(total_captures, 8);
 
 ### Number of possible chess games after N plies (half moves)
 ```rust
+# use cozy_chess::*;
 fn perft(board: &Board, plies: u32) -> u64 {
     if plies == 0 {
         return 1;
