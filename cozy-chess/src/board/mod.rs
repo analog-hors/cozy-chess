@@ -571,14 +571,11 @@ impl Board {
         let moved = self.piece_on(mv.from).ok_or(BoardError::InvalidBoard)?;
         let victim = self.piece_on(mv.to);
         let color = self.inner.side_to_move();
-        let from_bb = mv.from.bitboard();
-        let to_bb = mv.to.bitboard();
         let their_king = self.try_king(!color)?;
         let our_back_rank = Rank::First.relative_to(color);
-        let their_back_rank = Rank::First.relative_to(!color);
+        let their_back_rank = Rank::Eighth.relative_to(color);
         // Castling move encoded as king captures rook.
-        let is_castle = (self.colors(color) & (from_bb ^ to_bb)).popcnt() == 2;
-        let mut new_en_passant = None;
+        let is_castle = self.colors(color).has(mv.to);
 
         if moved == Piece::Pawn || (victim.is_some() && !is_castle) {
             self.halfmove_clock = 0;
@@ -589,12 +586,8 @@ impl Board {
             self.fullmove_number += 1;
         }
 
-        // Lift the piece
-        self.inner.xor_square(moved, color, mv.from);
+        let mut new_en_passant = None;
         if is_castle {
-            // Lift the rook too
-            self.inner.xor_square(Piece::Rook, color, mv.to);
-
             let (king, rook) = if mv.from.file() < mv.to.file() {
                 // Short castle
                 (File::G, File::F)
@@ -602,12 +595,19 @@ impl Board {
                 // Long castle
                 (File::C, File::D)
             };
-            // Drop in all the pieces.
+
+            // Lift the king, lift the rook.
+            self.inner.xor_square(Piece::King, color, mv.from);
+            self.inner.xor_square(Piece::Rook, color, mv.to);
+            // Drop in the king, drop in the rook.
             self.inner.xor_square(Piece::King, color, Square::new(king, our_back_rank));
             self.inner.xor_square(Piece::Rook, color, Square::new(rook, our_back_rank));
+            // Remove castling rights.
             self.inner.set_castle_right(color, true, None);
             self.inner.set_castle_right(color, false, None);
         } else {
+            // Lift the piece
+            self.inner.xor_square(moved, color, mv.from);
             // Drop the piece
             self.inner.xor_square(moved, color, mv.to);
             if let Some(victim) = victim {
@@ -623,47 +623,44 @@ impl Board {
                     }
                 }
             }
-            // Update checker information
+
+            // Finalize the move (special cases for each piece).
+            // Updating checker information for non-sliding pieces happens here.
             match moved {
-                Piece::Knight => self.checkers |= get_knight_moves(their_king) & to_bb,
+                Piece::Knight => self.checkers |= get_knight_moves(their_king) & mv.to.bitboard(),
                 Piece::Pawn => {
-                    const PAWN_DOUBLE_MOVE_FROM: BitBoard = BitBoard(
-                        Rank::Second.bitboard().0 | Rank::Seventh.bitboard().0
-                    );
-                    const PAWN_DOUBLE_MOVE_TO: BitBoard = BitBoard(
-                        Rank::Fourth.bitboard().0 | Rank::Fifth.bitboard().0
-                    );
                     if let Some(promotion) = mv.promotion {
                         // Get rid of the pawn and replace it with the promotion. Also update checkers.
                         self.inner.xor_square(Piece::Pawn, color, mv.to);
                         self.inner.xor_square(promotion, color, mv.to);
                         if promotion == Piece::Knight {
-                            self.checkers |= get_knight_moves(their_king) & to_bb;
+                            self.checkers |= get_knight_moves(their_king) & mv.to.bitboard();
                         }
                     } else {
-                        let en_passant = self.inner.en_passant().map(|ep| {
-                            Square::new(ep, Rank::Third.relative_to(!color))
+                        let double_move_from = Rank::Second.bitboard() | Rank::Seventh.bitboard();
+                        let double_move_to = Rank::Fourth.bitboard() | Rank::Fifth.bitboard();
+                        let ep_square = self.inner.en_passant().map(|ep| {
+                            Square::new(ep, Rank::Sixth.relative_to(color))
                         });
-                        if !(from_bb & PAWN_DOUBLE_MOVE_FROM).is_empty()
-                            && !(to_bb & PAWN_DOUBLE_MOVE_TO).is_empty() {
+                        if double_move_from.has(mv.from) && double_move_to.has(mv.to) {
                             // Double move, update en passant.
                             new_en_passant = Some(mv.to.file());
-                        } else if Some(mv.to) == en_passant {
+                        } else if Some(mv.to) == ep_square {
                             // En passant capture.
                             let victim_square = Square::new(
                                 mv.to.file(),
-                                Rank::Fourth.relative_to(!color)
+                                Rank::Fifth.relative_to(color)
                             );
                             self.inner.xor_square(Piece::Pawn, !color, victim_square);
                         }
                         // Update checkers.
-                        self.checkers |= get_pawn_attacks(their_king, !color) & to_bb;
+                        self.checkers |= get_pawn_attacks(their_king, !color) & mv.to.bitboard();
                     }
                 }
                 Piece::King => {
                     self.inner.set_castle_right(color, true, None);
                     self.inner.set_castle_right(color, false, None);
-                },
+                }
                 Piece::Rook => if mv.from.rank() == our_back_rank {
                     let rights = self.inner.castle_rights(color);
                     if Some(mv.from.file()) == rights.short {
@@ -675,7 +672,8 @@ impl Board {
                 _ => {}
             }
         }
-        
+        self.inner.set_en_passant(new_en_passant);
+
         // Almost there. Just have to update checker and pinned information for sliding pieces.
         let our_attackers = self.colors(color) & (
             (get_bishop_rays(their_king) & (
@@ -687,7 +685,6 @@ impl Board {
                 self.pieces(Piece::Queen)
             ))
         );
-
         for square in our_attackers {
             let between = get_between_rays(square, their_king) & self.occupied();
             match between.popcnt() {
@@ -696,7 +693,7 @@ impl Board {
                 _ => {}
             }
         }
-        self.inner.set_en_passant(new_en_passant);
+        
         self.inner.toggle_side_to_move();
 
         Ok(())
