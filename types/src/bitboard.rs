@@ -67,12 +67,15 @@ impl_math_assign_ops! {
 impl Sub for BitBoard {
     type Output = Self;
 
+    #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
         self & !rhs
     }
 }
 
 impl SubAssign for BitBoard {
+
+    #[inline(always)]
     fn sub_assign(&mut self, rhs: Self) {
         *self = *self - rhs;
     }
