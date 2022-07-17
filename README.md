@@ -17,12 +17,16 @@
 - Efficient bitboard-based board representation
 - Incrementally updated zobrist hash for quickly obtaining a hash of a board
 
+## A note on CPU features and performance
+By default, Rust binaries target a baseline CPU to ensure maximum compatibility at the cost of performance. `cozy-chess` benefits significantly from features present in modern CPUs. For maximum performance, the target CPU can instead be set to `native` to use features supported by the machine running the build. Alternatively, the target CPU can be set to `x86-64-v3`, which will produce binaries that run on most modern CPUs. The target CPU may be changed by adding `-C target-cpu=<CPU>` to `RUSTFLAGS`.
+
+PEXT bitboards are a faster variant of the magic bitboard algorithm used by `cozy-chess`. PEXT bitboards rely on an intrinsic introduced in the [BMI2 CPU extension](https://en.wikipedia.org/wiki/X86_Bit_manipulation_instruction_set). However, it is not enabled by default, as PEXT bitboards are *slower* on AMD CPUs prior to Zen 3, which implement PEXT with microcode. PEXT bitboards can be enabled through the `pext` feature. 
+
 ## Examples
 ### Basic example
 ```rust
 // Start position
 let board = Board::default();
-// Likely a fixed sized stack vector in a real engine
 let mut move_list = Vec::new();
 board.generate_moves(|moves| {
     // Unpack dense move set into move list
@@ -58,28 +62,12 @@ assert_eq!(total_moves, 48);
 assert_eq!(total_captures, 8);
 ```
 
-### Number of possible chess games after N plies (half moves)
-```rust
-fn perft(board: &Board, plies: u32) -> u64 {
-    if plies == 0 {
-        return 1;
-    }
-
-    let mut leaf_nodes = 0;
-    board.generate_moves(|moves| {
-        for mv in moves {
-            let mut child = board.clone();
-            child.play_unchecked(mv);
-            leaf_nodes += perft(&child, plies - 1);
-        }
-        false
-    });
-    leaf_nodes
-}
-
-let mut board = Board::default();
-
-assert_eq!(perft(&board, 1), 20);
-assert_eq!(perft(&board, 2), 400);
-assert_eq!(perft(&board, 3), 8902);
+### Perft example
+A [perft](https://www.chessprogramming.org/Perft) implementation exists in `cozy-chess/examples/perft.rs`:
+```text
+$ cargo run --release --example perft -- 7
+   Compiling cozy-chess v0.3.0
+    Finished release [optimized] target(s) in 6.37s
+     Running `target\release\examples\perft.exe 7`
+3195901860 nodes in 10.05s (318045465 nps)
 ```

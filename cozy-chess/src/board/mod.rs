@@ -25,6 +25,8 @@ pub enum BoardError {
 }
 
 /// A chessboard.
+/// 
+/// This keeps about as much state as a FEN string, and does not keep track of history.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Board {
     inner: ZobristBoard,

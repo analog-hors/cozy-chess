@@ -33,3 +33,6 @@ harness = false
 [[bench]]
 name = "move_fns"
 harness = false
+
+[features]
+pext = ["cozy-chess-types/pext"]
