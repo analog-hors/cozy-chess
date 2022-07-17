@@ -3,7 +3,6 @@ name = "cozy-chess"
 version = "0.3.0"
 authors = ["analog-hors <44050761+analog-hors@users.noreply.github.com>"]
 edition = "2021"
-build = "src/build.rs"
 
 license = "MIT"
 description = "Rust Chess and Chess960 move generation library"
