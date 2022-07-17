@@ -13,14 +13,18 @@ pub use builder::*;
 /// The current state of the game.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum GameStatus {
+    /// The game ended in a win.
     Won,
+    /// The game ended in a draw.
     Drawn,
+    /// The game is still ongoing.
     Ongoing
 }
 
 /// An error that may occur while handling a [`Board`].
 #[derive(Debug, Clone, Copy)]
 pub enum BoardError {
+    /// The board was invalid.
     InvalidBoard
 }
 

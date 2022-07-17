@@ -4,13 +4,21 @@ crate::helpers::simple_enum! {
     /// A rank on a chessboard.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
     pub enum Rank {
+        /// The first rank.
         First,
+        /// The second rank.
         Second,
+        /// The third rank.
         Third,
+        /// The fourth rank.
         Fourth,
+        /// The fifth rank.
         Fifth,
+        /// The sixth rank.
         Sixth,
+        /// The seventh rank.
         Seventh,
+        /// The eighth rank.
         Eighth
     }
 }

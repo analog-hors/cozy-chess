@@ -16,6 +16,7 @@ pub struct Move {
 /// An error while parsing a [`Move`].
 #[derive(Debug, Clone, Copy)]
 pub enum MoveParseError {
+    /// The move is invalid.
     InvalidMove
 }
 

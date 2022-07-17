@@ -4,13 +4,21 @@ crate::helpers::simple_enum! {
     /// A file on a chessboard.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
     pub enum File {
+        /// The A file.
         A,
+        /// The B file.
         B,
+        /// The C file.
         C,
+        /// The D file.
         D,
+        /// The E file.
         E,
+        /// The F file.
         F,
+        /// The G file.
         G,
+        /// The H file.
         H
     }
 }

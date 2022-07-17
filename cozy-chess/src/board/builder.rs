@@ -5,22 +5,34 @@ use super::zobrist::ZobristBoard;
 /// An error while building a board.
 #[derive(Debug, Clone, Copy)]
 pub enum BoardBuilderError {
+    /// The board is invalid.
     InvalidBoard,
+    /// The side to move is invalid.
     InvalidSideToMove,
+    /// The castling rights are invalid.
     InvalidCastlingRights,
+    /// The en passant square is invalid.
     InvalidEnPassant,
+    /// The halfmove clock is invalid.
     InvalidHalfMoveClock,
+    /// The fullmove number is invalid.
     InvalidFullmoveNumber,
 }
 
 /// A board builder to manipulate arbitrary boards.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BoardBuilder {
+    /// The board state. Index by square to get the corresponding piece.
     pub board: [Option<(Piece, Color)>; Square::NUM],
+    /// The side to move.
     pub side_to_move: Color,
+    /// The castling rights. Index by color to get the corresponding side's rights.
     pub castle_rights: [CastleRights; Color::NUM],
+    /// The en passant square.
     pub en_passant: Option<Square>,
+    /// The halfmove clock.
     pub halfmove_clock: u8,
+    /// The fullmove number.
     pub fullmove_number: u16
 }
 

@@ -2,7 +2,9 @@ crate::helpers::simple_enum! {
     /// A side to move.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub enum Color {
+        /// The color white.
         White,
+        /// The color black.
         Black
     }
 }

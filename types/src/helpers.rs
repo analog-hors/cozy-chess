@@ -2,12 +2,18 @@ macro_rules! simple_enum {
     ($(
         $(#[$attr:meta])*
         $vis:vis enum $name:ident {
-            $($variant:ident),*
+            $(
+                $(#[$variant_attr:meta])*
+                $variant:ident
+            ),*
         }
     )*) => {$(
         $(#[$attr])*
         $vis enum $name {
-            $($variant),*
+            $(
+                $(#[$variant_attr])*
+                $variant
+            ),*
         }
 
         impl $name {
@@ -75,6 +81,7 @@ macro_rules! enum_char_conv {
         #[doc = concat!("An error while parsing a [`", stringify!($enum), "`].")]
         #[derive(Debug, Clone, Copy)]
         pub enum $error {
+            /// The value is invalid.
             InvalidValue
         }
 

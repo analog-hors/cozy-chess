@@ -3,11 +3,17 @@ crate::helpers::simple_enum! {
     /// Pieces are ordered by approximate material value.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
     pub enum Piece {
+        /// A pawn.
         Pawn,
+        /// A knight.
         Knight,
+        /// A bishop.
         Bishop,
+        /// A rook.
         Rook,
+        /// A queen.
         Queen,
+        /// A king.
         King
     }
 }

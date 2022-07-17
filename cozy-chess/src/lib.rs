@@ -1,4 +1,5 @@
 #![cfg_attr(not(test), no_std)]
+#![deny(missing_docs)]
 #![doc = include_str!("../README.md")]
 
 use cozy_chess_types::*;

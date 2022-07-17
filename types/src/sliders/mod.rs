@@ -1,3 +1,6 @@
+// This module is never exposed by the main crate.
+#![allow(missing_docs)]
+
 mod common;
 
 #[cfg(not(feature = "bmi2"))]
