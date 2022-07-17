@@ -19,12 +19,14 @@ macro_rules! simple_enum {
             #[doc = concat!("Checked version of [`", stringify!($name), "::index`].")]
             #[inline(always)]
             pub const fn try_index(index: usize) -> Option<Self> {
-                $(#[allow(non_upper_case_globals, unused)]
-                const $variant: usize = $name::$variant as usize;)*
+                mod variant_indexes {
+                    #![allow(non_upper_case_globals, unused)]
+                    $(pub const $variant: usize = super::$name::$variant as usize;)*
+                }
                 #[allow(non_upper_case_globals)]
                 match index {
-                    $($variant => Option::Some(Self::$variant),)*
-                    _ => Option::None
+                    $(variant_indexes::$variant => Some(Self::$variant),)*
+                    _ => None
                 }
             }
 
