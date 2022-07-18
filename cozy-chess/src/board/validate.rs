@@ -9,16 +9,9 @@ macro_rules! soft_assert {
 }
 
 impl Board {
-    /// Check if the board is valid. If not, other functions may not work as expected.
-    /// # Examples
-    /// ```
-    /// # use cozy_chess::*;
-    /// let mut board = Board::default();
-    /// assert!(board.validity_check());
-    /// let _ = board.try_play_unchecked("e1e8".parse().unwrap());
-    /// assert!(!board.validity_check());
-    /// ```
-    pub fn validity_check(&self) -> bool {
+    /// Canonical implementation of board validity. Used for debugging.
+    #[cfg(test)]
+    pub(crate) fn validity_check(&self) -> bool {
         soft_assert!(self.board_is_valid());
         soft_assert!(self.castle_rights_are_valid());
         soft_assert!(self.en_passant_is_valid());

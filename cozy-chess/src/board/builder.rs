@@ -200,18 +200,14 @@ impl BoardBuilder {
     }
 
     /// Create a builder from a [`Board`].
-    /// # Errors
-    /// This will error (return [`None`]) if the board is invalid.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
-    /// let builder = BoardBuilder::default().build().unwrap();
-    /// assert_eq!(builder, Board::default());
+    /// let board = Board::default();
+    /// let builder = BoardBuilder::from_board(&board);
+    /// assert_eq!(builder.build().unwrap(), board);
     /// ```
-    pub fn from_board(board: &Board) -> Option<Self> {
-        if !board.validity_check() {
-            return None;
-        }
+    pub fn from_board(board: &Board) -> Self {
         let mut this = BoardBuilder::empty();
         for &color in &Color::ALL {
             let pieces = board.colors(color);
@@ -228,7 +224,7 @@ impl BoardBuilder {
         this.en_passant = board.en_passant().map(|f| Square::new(f, en_passant_rank));
         this.halfmove_clock = board.halfmove_clock();
         this.fullmove_number = board.fullmove_number();
-        Some(this)
+        this
     }
 
     /// Get a square on the board.
@@ -382,7 +378,7 @@ mod tests {
         let positions = include_str!("test_data/valid.sfens");
         for fen in positions.lines() {
             let board = Board::from_fen(fen, true).unwrap();
-            let builder = BoardBuilder::from_board(&board).unwrap();
+            let builder = BoardBuilder::from_board(&board);
             assert_eq!(builder.build().unwrap(), board);
         }
     }
@@ -397,5 +393,5 @@ mod tests {
         }
     }
 
-    //No invalid FEN test yet due to lack of invalid FEN data.
+    // No invalid FEN test yet due to lack of invalid FEN data.
 }

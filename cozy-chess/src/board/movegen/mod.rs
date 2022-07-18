@@ -49,9 +49,9 @@ macro_rules! abort_if {
 }
 
 impl Board {
-    //Squares we can land on. When we're in check, we have to block
-    //or capture the checker. In any case, we can't land on our own
-    //pieces. Assumed to only be called if there is only one checker.
+    // Squares we can land on. When we're in check, we have to block
+    // or capture the checker. In any case, we can't land on our own
+    // pieces. Assumed to only be called if there is only one checker.
     fn target_squares<const IN_CHECK: bool>(&self) -> BitBoard {
         let color = self.side_to_move();
         let targets = if IN_CHECK {
@@ -311,16 +311,12 @@ impl Board {
     }
 
     /// Generate all legal moves given a position in no particular order.
-    /// All guarantees made by this function are only guaranteed if the board is valid.
     /// To retrieve the moves, a `listener` callback must be passed that receives compact [`PieceMoves`].
     /// This does *not* guarantee that each [`PieceMoves`] value has a unique `from` square.
     /// However, each [`PieceMoves`] value will have at least one move.
     /// The listener will be called a maximum of 18 times.
     /// The listener can abort the movegen early by returning `true`.
     /// In this case, this function also returns `true`.
-    /// # Panics
-    /// This may panic if the board is invalid. However, this is not guaranteed.
-    /// See [`Board::try_generate_moves`] for a non-panicking variant.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -340,18 +336,8 @@ impl Board {
         self.generate_moves_for(BitBoard::FULL, listener)
     }
 
-    /// Non-panicking version of [`Board::generate_moves`].
-    /// # Errors
-    /// See [`Board::generate_moves`]'s panics.
-    pub fn try_generate_moves(&self, listener: impl FnMut(PieceMoves) -> bool) -> Result<bool, BoardError> {
-        self.try_generate_moves_for(BitBoard::FULL, listener)
-    }
-
     /// Version of [`Board::generate_moves`] moves that
     /// generates moves for only a subset of pieces.
-    /// # Panics
-    /// This may panic if the board is invalid. However, this is not guaranteed.
-    /// See [`Board::try_generate_moves_for`] for a non-panicking variant.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -369,25 +355,13 @@ impl Board {
     /// assert_eq!(knight_moves, 4);
     /// ```
     pub fn generate_moves_for(
-        &self, mask: BitBoard, listener: impl FnMut(PieceMoves) -> bool
-    ) -> bool {
-        self.try_generate_moves_for(mask, listener).expect("Invalid board!")
-    }
-
-    /// Non-panicking version of [`Board::generate_moves_for`].
-    /// # Errors
-    /// See [`Board::generate_moves_for`]'s panics.
-    pub fn try_generate_moves_for(
         &self, mask: BitBoard, mut listener: impl FnMut(PieceMoves) -> bool
-    ) -> Result<bool, BoardError> {
-        if self.try_king(self.side_to_move()).is_err() {
-            return Err(BoardError::InvalidBoard);
-        }
-        Ok(match self.checkers().popcnt() {
+    ) -> bool {
+        match self.checkers().popcnt() {
             0 => self.add_all_legals::<_, false>(mask, &mut listener),
-            1 => self.add_all_legals::<_, true>(mask ,&mut listener),
+            1 => self.add_all_legals::<_, true>(mask, &mut listener),
             _ => self.add_king_legals::<_, true>(mask, &mut listener)
-        })
+        }
     }
 
     fn king_is_legal(&self, mv: Move) -> bool {
@@ -415,9 +389,6 @@ impl Board {
     }
 
     /// See if a move is legal.
-    /// # Panics
-    /// This may panic if the board is invalid. However, this is not guaranteed.
-    /// See [`Board::try_is_legal`] for a non-panicking variant.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -426,48 +397,41 @@ impl Board {
     /// assert!(!board.is_legal("e1e8".parse().unwrap()));
     /// ```
     pub fn is_legal(&self, mv: Move) -> bool {
-        self.try_is_legal(mv).expect("Invalid board!")
-    }
-
-    /// Non-panicking version of [`Board::is_legal`].
-    /// # Errors
-    /// See [`Board::is_legal`]'s panics.
-    pub fn try_is_legal(&self, mv: Move) -> Result<bool, BoardError> {
         if !self.colors(self.side_to_move()).has(mv.from) {
-            return Ok(false);
+            return false;
         }
 
-        let king_sq = self.try_king(self.side_to_move())?;
+        let king_sq = self.king(self.side_to_move());
         if mv.from == king_sq {
             if mv.promotion.is_some() {
-                return Ok(false);
+                return false;
             }
-            return Ok(self.king_is_legal(mv));
+            return self.king_is_legal(mv);
         }
 
         if self.pinned().has(mv.from) && !get_line_rays(king_sq, mv.from).has(mv.to) {
-            return Ok(false);
+            return false;
         }
 
         let target_squares = match self.checkers().popcnt() {
             0 => self.target_squares::<false>(),
             1 => self.target_squares::<true>(),
-            _ => return Ok(false),
+            _ => return false,
         };
 
         let piece = self.piece_on(mv.from);
         if piece != Some(Piece::Pawn) && mv.promotion.is_some() {
-            return Ok(false);
+            return false;
         }
 
-        Ok(match piece {
+        match piece {
             None | Some(Piece::King) => false, // impossible
             Some(Piece::Pawn) => {
                 let promo_rank = Rank::Eighth.relative_to(self.side_to_move());
                 match (mv.to.rank() == promo_rank, mv.promotion) {
                     (true, Some(Piece::Knight | Piece::Bishop | Piece::Rook | Piece::Queen)) => {}
                     (false, None) => {}
-                    _ => return Ok(false),
+                    _ => return false,
                 }
                 let mut c = |moves: PieceMoves| moves.to.has(mv.to);
                 if self.checkers().is_empty() {
@@ -489,6 +453,6 @@ impl Board {
                 (target_squares & (get_rook_rays(mv.from) | get_bishop_rays(mv.from))).has(mv.to)
                     && (get_between_rays(mv.from, mv.to) & self.occupied()).is_empty()
             }
-        })
+        }
     }
 }

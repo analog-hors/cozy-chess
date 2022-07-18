@@ -21,12 +21,9 @@ pub enum GameStatus {
     Ongoing
 }
 
-/// An error that may occur while handling a [`Board`].
+/// An error returned when a move was invalid.
 #[derive(Debug, Clone, Copy)]
-pub enum BoardError {
-    /// The board was invalid.
-    InvalidBoard
-}
+pub struct InvalidMove;
 
 /// A chessboard.
 /// 
@@ -172,7 +169,7 @@ impl Board {
         self.inner.side_to_move()
     }
 
-    /// Get the [CastleRights] for some side.
+    /// Get the [`CastleRights`] for some side.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -329,7 +326,7 @@ impl Board {
         self.fullmove_number
     }
 
-    /// Get the [Piece] on `square`, if there is one.
+    /// Get the [`Piece`] on `square`, if there is one.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -341,7 +338,7 @@ impl Board {
         Piece::ALL.iter().copied().find(|&p| self.pieces(p).has(square))
     }
 
-    /// Get the [Color] of the piece on `square`, if there is one.
+    /// Get the [`Color`] of the piece on `square`, if there is one.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -359,9 +356,7 @@ impl Board {
         }
     }
 
-    /// Get the king square of some side. Panic if there is no king.
-    /// # Panics
-    /// Panic if there is no king.
+    /// Get the king square of some side.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -370,13 +365,9 @@ impl Board {
     /// ```
     #[inline(always)]
     pub fn king(&self, color: Color) -> Square {
-        self.try_king(color).expect("No king was found.")
-    }
-
-    #[inline(always)]
-    fn try_king(&self, color: Color) -> Result<Square, BoardError> {
         (self.pieces(Piece::King) & self.colors(color))
-            .next_square().ok_or(BoardError::InvalidBoard)
+            .next_square()
+            .expect("No king was found.")
     }
 
     /// Get the status of the game.
@@ -384,8 +375,6 @@ impl Board {
     /// The game may also be drawn from insufficient material cases such
     /// as bare kings; This method does not detect such cases.
     /// If the game is won, the loser is the current side to move.
-    /// # Panics
-    /// This may panic if the board is invalid.
     /// # Examples
     /// ## Checkmate
     /// ```
@@ -446,9 +435,6 @@ impl Board {
 
     /// Attempt to play a [null move](https://www.chessprogramming.org/Null_Move),
     /// returning a new board if successful.
-    /// # Panics
-    /// This may panic if the board is invalid. However, this is not guaranteed.
-    /// See [`Board::try_null_move`] for a non-panicking variant.
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -463,14 +449,7 @@ impl Board {
     /// assert!(board.null_move().is_none());
     /// ```
     pub fn null_move(&self) -> Option<Board> {
-        self.try_null_move().expect("Invalid board!")
-    }
-
-    /// Non-panicking version of [`Board::null_move`].
-    /// # Errors
-    /// See [`Board::null_move`]'s panics.
-    pub fn try_null_move(&self) -> Result<Option<Board>, BoardError> {
-        Ok(if self.checkers.is_empty() {
+        if self.checkers.is_empty() {
             let mut board = self.clone();
             board.halfmove_clock += 1;
             if board.side_to_move() == Color::Black {
@@ -481,7 +460,7 @@ impl Board {
 
             board.pinned = BitBoard::EMPTY;
             let color = board.side_to_move();
-            let our_king = board.try_king(color)?;
+            let our_king = board.king(color);
             let their_attackers = board.colors(!color) & (
                 (get_bishop_rays(our_king) & (
                     board.pieces(Piece::Bishop) |
@@ -502,13 +481,12 @@ impl Board {
             Some(board)
         } else {
             None
-        })
+        }
     }
 
     /// Play a move while checking its legality. Note that this only supports Chess960 style castling.
     /// # Panics
     /// This is guaranteed to panic if the move is illegal.
-    /// This may panic if the board is invalid. However, this is not guaranteed.
     /// See [`Board::try_play`] for a non-panicking variant.
     /// See [`Board::play_unchecked`] for a faster variant
     /// that's not guaranteed to panic on illegal moves.
@@ -531,14 +509,28 @@ impl Board {
     /// board.play("e1e8".parse().unwrap());
     /// ```
     pub fn play(&mut self, mv: Move) {
-        assert!(self.try_play(mv).expect("Invalid board!"), "Illegal move {}!", mv);
+        assert!(self.try_play(mv).is_ok(), "Illegal move {}!", mv);
+    }
+
+    /// Non-panicking version of [`Board::play`].
+    /// Tries to play a move, returning `Ok(())` on success.
+    /// # Errors
+    /// Errors with [`InvalidMove`] if the move was invalid.
+    pub fn try_play(&mut self, mv: Move) -> Result<(), InvalidMove> {
+        if !self.is_legal(mv) {
+            return Err(InvalidMove);
+        }
+        self.play_unchecked(mv);
+        Ok(())
     }
 
     /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
-    /// Invalid moves may create an invalid board, though this is not guaranteed.
+    /// Use this method with caution; Only legal moves should ever be passed to this method. 
+    /// Playing invalid moves may corrupt the board state, causing panics.
+    /// However, it will not cause undefined behaviour.
     /// # Panics
-    /// This may panic if the board or move is invalid. However, this is not guaranteed.
-    /// See [`Board::try_play_unchecked`] for a non-panicking variant.
+    /// This may panic if the move is invalid.
+    /// Additionally, playing invalid moves may corrupt the board state, which may cause further panics.
     /// See [`Board::play`] for a variant guaranteed to panic on illegal moves.
     /// # Examples
     /// ```
@@ -552,32 +544,13 @@ impl Board {
     /// assert_eq!(format!("{}", board), EXPECTED);
     /// ```
     pub fn play_unchecked(&mut self, mv: Move) {
-        self.try_play_unchecked(mv).expect("Invalid board!");
-    }
-
-    /// Non-panicking version of [`Board::play`].
-    /// Try to play a move and returns `true` if it was successful.
-    /// # Errors
-    /// This may return an error if the board is invalid. However, this is not guaranteed.
-    pub fn try_play(&mut self, mv: Move) -> Result<bool, BoardError> {
-        if !self.is_legal(mv) {
-            return Ok(false);
-        }
-        self.try_play_unchecked(mv)?;
-        Ok(true)
-    }
-
-    /// Non-panicking version of [`Board::play_unchecked`].
-    /// # Errors
-    /// See [`Board::play_unchecked`]'s panics.
-    pub fn try_play_unchecked(&mut self, mv: Move) -> Result<(), BoardError> {
         self.pinned = BitBoard::EMPTY;
         self.checkers = BitBoard::EMPTY;
 
-        let moved = self.piece_on(mv.from).ok_or(BoardError::InvalidBoard)?;
+        let moved = self.piece_on(mv.from).expect("Missing piece on move's from square");
         let victim = self.piece_on(mv.to);
         let color = self.inner.side_to_move();
-        let their_king = self.try_king(!color)?;
+        let their_king = self.king(!color);
         let our_back_rank = Rank::First.relative_to(color);
         let their_back_rank = Rank::Eighth.relative_to(color);
         // Castling move encoded as king captures rook.
@@ -701,8 +674,6 @@ impl Board {
         }
         
         self.inner.toggle_side_to_move();
-
-        Ok(())
     }
 }
 
