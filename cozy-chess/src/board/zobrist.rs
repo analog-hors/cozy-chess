@@ -134,6 +134,13 @@ impl ZobristBoard {
         hash
     }
 
+    pub fn board_is_equal(&self, other: &Self) -> bool {
+        self.pieces == other.pieces
+            && self.colors == other.colors
+            && self.side_to_move == other.side_to_move
+            && self.castle_rights == other.castle_rights
+    }
+
     #[inline(always)]
     pub fn xor_square(&mut self, piece: Piece, color: Color, square: Square) {
         let square_bb = square.bitboard();

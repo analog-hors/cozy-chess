@@ -434,6 +434,52 @@ impl Board {
         }
     }
 
+    /// Check if two positions are equivalent based on the FIDE definition.
+    /// This differs from the [`Eq`] implementation in that:
+    /// - It does not check the halfmove clock or fullmove number
+    /// - It ignores the state of the en passant square if it does not apply (capture would not be legal)
+    /// This method can be used as a strict check for threefold repetition.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board_a = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+    ///     .parse::<Board>().unwrap();
+    /// let board_b = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 4 3"
+    ///     .parse::<Board>().unwrap();
+    /// assert!(board_a != board_b); // Differing EP and halfmove clock
+    /// assert!(board_a.same_position(&board_b)); // Identical by FIDE rules
+    /// 
+    /// let board_c = "rnbqkb1r/ppp1pppp/5n2/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq d6 0 3"
+    ///     .parse::<Board>().unwrap();
+    /// let board_d = "rnbqkb1r/ppp1pppp/5n2/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq - 4 5"
+    ///     .parse::<Board>().unwrap();
+    /// assert!(!board_c.same_position(&board_d)); // En passant is legal here
+    /// ```
+    pub fn same_position(&self, other: &Self) -> bool {
+        fn effective_ep(board: &Board) -> Option<File> {
+            if let Some(ep_file) = board.en_passant() {
+                let color = board.side_to_move();
+                let ep_rank = Rank::Sixth.relative_to(color);
+                let ep_square = Square::new(ep_file, ep_rank);
+                let attackers = get_pawn_attacks(ep_square, !color);
+                for attacker in attackers {
+                    let mv = Move {
+                        from: attacker,
+                        to: ep_square,
+                        promotion: None
+                    };
+                    if board.is_legal(mv) {
+                        return Some(ep_file);
+                    }
+                }
+            }
+            None
+        }
+        self.hash_without_ep() == other.hash_without_ep()
+            && self.inner.board_is_equal(&other.inner)
+            && effective_ep(self) == effective_ep(other)
+    }
+
     /// Attempt to play a [null move](https://www.chessprogramming.org/Null_Move),
     /// returning a new board if successful.
     /// # Examples
