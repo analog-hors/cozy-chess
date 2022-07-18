@@ -29,11 +29,9 @@ define_square_with_docs! {
     A8, B8, C8, D8, E8, F8, G8, H8
 }
 
-/// An error while parsing a [`Square`].
-#[derive(Debug, Clone, Copy)]
-pub enum SquareParseError {
-    /// The square is invalid.
-    InvalidSquare
+crate::helpers::simple_error! {
+    /// The value was not a valid [`Square`].
+    pub struct SquareParseError = "The value was not a valid Square.";
 }
 
 impl FromStr for Square {
@@ -43,16 +41,14 @@ impl FromStr for Square {
         let mut chars = s.chars();
         let file = chars.next()
             .and_then(|c| c.try_into().ok())
-            .ok_or(SquareParseError::InvalidSquare)?;
+            .ok_or(SquareParseError)?;
         let rank = chars.next()
             .and_then(|c| c.try_into().ok())
-            .ok_or(SquareParseError::InvalidSquare)?;
-        let square = Square::new(file, rank);
+            .ok_or(SquareParseError)?;
         if chars.next().is_some() {
-            Err(SquareParseError::InvalidSquare)
-        } else {
-            Ok(square)
+            return Err(SquareParseError);
         }
+        Ok(Square::new(file, rank))
     }
 }
 

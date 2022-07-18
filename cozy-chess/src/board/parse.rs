@@ -6,25 +6,18 @@ use crate::*;
 
 use super::ZobristBoard;
 
-/// An error while parsing the FEN.
-#[derive(Debug, Clone, Copy)]
-pub enum FenParseError {
-    /// The board is invalid.
-    InvalidBoard,
-    /// The side to move is invalid.
-    InvalidSideToMove,
-    /// The castling rights are invalid.
-    InvalidCastlingRights,
-    /// The en passant square is invalid.
-    InvalidEnPassant,
-    /// The halfmove clock is invalid.
-    InvalidHalfMoveClock,
-    /// The fullmove number is invalid.
-    InvalidFullmoveNumber,
-    /// The FEN is missing a field.
-    MissingField,
-    /// The FEN has too many fields.
-    TooManyFields
+helpers::simple_error! {
+    /// An error while parsing the FEN.
+    pub enum FenParseError {
+        InvalidBoard = "The board is invalid.",
+        InvalidSideToMove = "The side to move is invalid.",
+        InvalidCastlingRights = "The castling rights are invalid.",
+        InvalidEnPassant = "The en passant square is invalid.",
+        InvalidHalfMoveClock = "The halfmove clock is invalid.",
+        InvalidFullmoveNumber = "The fullmove number is invalid.",
+        MissingField = "The FEN is missing a field.",
+        TooManyFields = "The FEN has too many fields."
+    }
 }
 
 impl Board {

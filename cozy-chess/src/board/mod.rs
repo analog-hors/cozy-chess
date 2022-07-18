@@ -22,9 +22,10 @@ pub enum GameStatus {
     Ongoing
 }
 
-/// An error returned when a move was invalid.
-#[derive(Debug, Clone, Copy)]
-pub struct InvalidMove;
+helpers::simple_error! {
+    /// An error returned when the move played was illegal.
+    pub struct IllegalMoveError = "The move played was illegal.";
+}
 
 /// A chessboard.
 /// 
@@ -562,10 +563,10 @@ impl Board {
     /// Non-panicking version of [`Board::play`].
     /// Tries to play a move, returning `Ok(())` on success.
     /// # Errors
-    /// Errors with [`InvalidMove`] if the move was invalid.
-    pub fn try_play(&mut self, mv: Move) -> Result<(), InvalidMove> {
+    /// Errors with [`IllegalMoveError`] if the move was illegal.
+    pub fn try_play(&mut self, mv: Move) -> Result<(), IllegalMoveError> {
         if !self.is_legal(mv) {
-            return Err(InvalidMove);
+            return Err(IllegalMoveError);
         }
         self.play_unchecked(mv);
         Ok(())
@@ -573,11 +574,11 @@ impl Board {
 
     /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
     /// Use this method with caution; Only legal moves should ever be passed to this method. 
-    /// Playing invalid moves may corrupt the board state, causing panics.
+    /// Playing illegal moves may corrupt the board state, causing panics.
     /// However, it will not cause undefined behaviour.
     /// # Panics
-    /// This may panic if the move is invalid.
-    /// Additionally, playing invalid moves may corrupt the board state, which may cause further panics.
+    /// This may panic if the move is illegal.
+    /// Additionally, playing illegal moves may corrupt the board state, which may cause further panics.
     /// See [`Board::play`] for a variant guaranteed to panic on illegal moves.
     /// # Examples
     /// ```

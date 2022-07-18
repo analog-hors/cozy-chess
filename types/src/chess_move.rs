@@ -13,11 +13,9 @@ pub struct Move {
     pub promotion: Option<Piece>
 }
 
-/// An error while parsing a [`Move`].
-#[derive(Debug, Clone, Copy)]
-pub enum MoveParseError {
-    /// The move is invalid.
-    InvalidMove
+crate::helpers::simple_error! {
+    /// The value was not a valid [`Move`].
+    pub struct MoveParseError = "The value was not a valid Move.";
 }
 
 impl FromStr for Move {
@@ -40,7 +38,7 @@ impl FromStr for Move {
                 }
             })
         }
-        parse(s).ok_or(MoveParseError::InvalidMove)
+        parse(s).ok_or(MoveParseError)
     }
 }
 

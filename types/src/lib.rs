@@ -1,8 +1,9 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![deny(missing_docs)]
 #![doc = include_str!("../README.md")]
 
-mod helpers;
+/// Module for helper macros.
+pub mod helpers;
 
 /// The color module.
 pub mod color;

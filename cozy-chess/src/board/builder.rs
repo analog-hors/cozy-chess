@@ -2,21 +2,16 @@ use crate::*;
 
 use super::zobrist::ZobristBoard;
 
-/// An error while building a board.
-#[derive(Debug, Clone, Copy)]
-pub enum BoardBuilderError {
-    /// The board is invalid.
-    InvalidBoard,
-    /// The side to move is invalid.
-    InvalidSideToMove,
-    /// The castling rights are invalid.
-    InvalidCastlingRights,
-    /// The en passant square is invalid.
-    InvalidEnPassant,
-    /// The halfmove clock is invalid.
-    InvalidHalfMoveClock,
-    /// The fullmove number is invalid.
-    InvalidFullmoveNumber,
+helpers::simple_error! {
+    /// An error while building a board.
+    pub enum BoardBuilderError {
+        InvalidBoard = "The board is invalid.",
+        InvalidSideToMove = "The side to move is invalid.",
+        InvalidCastlingRights = "The castling rights are invalid.",
+        InvalidEnPassant = "The en passant square is invalid.",
+        InvalidHalfMoveClock = "The halfmove clock is invalid.",
+        InvalidFullmoveNumber = "The fullmove number is invalid."
+    }
 }
 
 /// A board builder to manipulate arbitrary boards.

@@ -1,5 +1,8 @@
+// This module is never exposed by the main crate.
+#![allow(missing_docs)]
+
 macro_rules! simple_enum {
-    ($(
+    (
         $(#[$attr:meta])*
         $vis:vis enum $name:ident {
             $(
@@ -7,7 +10,7 @@ macro_rules! simple_enum {
                 $variant:ident
             ),*
         }
-    )*) => {$(
+    ) => {
         $(#[$attr])*
         $vis enum $name {
             $(
@@ -60,16 +63,16 @@ macro_rules! simple_enum {
                 }
             }
         }
-    )*};
+    };
 }
 pub(crate) use simple_enum;
 
 macro_rules! enum_char_conv {
-    ($(
+    (
         $enum:ident, $error:ident {
             $($variant:ident = $char:expr),*
         }
-    )*) => {$(
+    ) => {
         impl From<$enum> for char {
             fn from(value: $enum) -> Self {
                 match value {
@@ -78,11 +81,9 @@ macro_rules! enum_char_conv {
             }
         }
 
-        #[doc = concat!("An error while parsing a [`", stringify!($enum), "`].")]
-        #[derive(Debug, Clone, Copy)]
-        pub enum $error {
-            /// The value is invalid.
-            InvalidValue
+        $crate::simple_error! {
+            #[doc = concat!("The value was not a valid [`", stringify!($enum), "`].")]
+            pub struct $error = concat!("The value was not a valid `", stringify!($enum), "`.");
         }
 
         impl core::convert::TryFrom<char> for $enum {
@@ -91,7 +92,7 @@ macro_rules! enum_char_conv {
             fn try_from(value: char) -> Result<Self, Self::Error> {
                 match value {
                     $($char => Ok(Self::$variant),)*
-                    _ => Err($error::InvalidValue)
+                    _ => Err($error)
                 }
             }
         }
@@ -103,11 +104,11 @@ macro_rules! enum_char_conv {
                 use core::convert::TryInto;
 
                 let mut chars = s.chars();
-                let c = chars.next().ok_or($error::InvalidValue)?;
+                let c = chars.next().ok_or($error)?;
                 if chars.next().is_none() {
                     c.try_into()
                 } else {
-                    Err($error::InvalidValue)
+                    Err($error)
                 }
             }
         }
@@ -118,6 +119,52 @@ macro_rules! enum_char_conv {
                 c.fmt(f)
             }
         }
-    )*};
+    };
 }
 pub(crate) use enum_char_conv;
+
+#[macro_export]
+macro_rules! simple_error {
+    (
+        $(#[$attr:meta])*
+        $vis:vis enum $error:ident {
+            $($variant:ident = $string:expr),*
+        }
+    ) => {
+        $(#[$attr])*
+        #[derive(Debug, Clone, Copy)]
+        $vis enum $error {
+            $(#[doc = $string] $variant),*
+        }
+
+        impl core::fmt::Display for $error {
+            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+                match self {
+                    $(Self::$variant => write!(f, $string)),*
+                }
+            }
+        }
+
+        #[cfg(feature = "std")]
+        impl std::error::Error for $error {}
+    };
+
+    (
+        $(#[$attr:meta])*
+        $vis:vis struct $error:ident = $string:expr;
+    ) => {
+        $(#[$attr])*
+        #[derive(Debug, Clone, Copy)]
+        $vis struct $error;
+
+        impl core::fmt::Display for $error {
+            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+                write!(f, $string)
+            }
+        }
+
+        #[cfg(feature = "std")]
+        impl std::error::Error for $error {}
+    };
+}
+pub use simple_error;

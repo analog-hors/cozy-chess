@@ -12,4 +12,5 @@ repository = "https://github.com/analog-hors/cozy-chess/"
 [dependencies]
 
 [features]
+std = []
 pext = []

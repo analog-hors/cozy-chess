@@ -34,4 +34,5 @@ name = "move_fns"
 harness = false
 
 [features]
+std = ["cozy-chess-types/std"]
 pext = ["cozy-chess-types/pext"]
