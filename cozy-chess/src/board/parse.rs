@@ -70,7 +70,7 @@ impl Board {
             return Err(InvalidCastlingRights);
         }
         Self::parse_en_passant(&mut board, next()?)
-            .map_err(|_| InvalidCastlingRights)?;
+            .map_err(|_| InvalidEnPassant)?;
         if !board.en_passant_is_valid() {
             return Err(InvalidEnPassant);
         }
