@@ -9,19 +9,27 @@ use super::ZobristBoard;
 /// An error while parsing the FEN.
 #[derive(Debug, Clone, Copy)]
 pub enum FenParseError {
+    /// The board is invalid.
     InvalidBoard,
+    /// The side to move is invalid.
     InvalidSideToMove,
+    /// The castling rights are invalid.
     InvalidCastlingRights,
+    /// The en passant square is invalid.
     InvalidEnPassant,
+    /// The halfmove clock is invalid.
     InvalidHalfMoveClock,
+    /// The fullmove number is invalid.
     InvalidFullmoveNumber,
+    /// The FEN is missing a field.
     MissingField,
+    /// The FEN has too many fields.
     TooManyFields
 }
 
 impl Board {
     /// Parse a FEN string. If `shredder` is true, it parses Shredder FEN instead.
-    /// You can also parse the board with [`FromStr`], which parses regular FEN.
+    /// You can also parse the board with [`FromStr`], which parses both FEN types.
     /// # Examples
     /// ## FEN
     /// ```
@@ -190,7 +198,9 @@ impl Board {
 impl FromStr for Board {
     type Err = FenParseError;
 
-    /// Parse the board. You can also parse Shredder FEN with [`Board::from_fen`]
+    /// Parse the board.
+    /// This method will parse both regular FENs and Shredder FENs.
+    /// See also: [`Board::from_fen`].
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
@@ -199,12 +209,12 @@ impl FromStr for Board {
     /// assert_eq!(format!("{}", board), STARTPOS);
     /// ```
     fn from_str(fen: &str) -> Result<Self, Self::Err> {
-        Self::from_fen(fen, false)
+        Self::from_fen(fen, false).or_else(|_| Self::from_fen(fen, true))
     }
 }
 
 impl Display for Board {
-    /// Display the board. You can use the alternate format mode for Shredder FEN
+    /// Display the board. You can use the alternate format mode for Shredder FEN.
     /// # Examples
     /// ## FEN
     /// ```

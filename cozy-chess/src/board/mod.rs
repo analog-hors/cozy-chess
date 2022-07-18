@@ -8,6 +8,7 @@ mod validate;
 
 use zobrist::*;
 pub use movegen::*;
+pub use parse::*;
 pub use builder::*;
 
 /// The current state of the game.
