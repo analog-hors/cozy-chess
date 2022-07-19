@@ -7,7 +7,8 @@
 
 <img src="https://static.manebooru.art/img/view/2020/10/8/1827770.jpg" alt="Cozy Glow" width=20% height=30%>
 
-## Features
+## Overview
+- `no_std` compatible
 - Supports Chess, Chess960/FRC, and Double Chess960/DFRC
 - Strongly-typed API that makes heavy use of newtypes to avoid errors
 - Performant legal move generation suitable for use in a chess engine
@@ -16,6 +17,10 @@
     - Flexible API produces moves in bulk for optional bulk filtering
 - Efficient bitboard-based board representation
 - Incrementally updated zobrist hash for quickly obtaining a hash of a board
+
+## Crate features
+- `std`: Enable features that require `std`. Currently only used for the `Error` trait.
+- `pext`: Enable PEXT bitboards.
 
 ## A note on CPU features and performance
 By default, Rust binaries target a baseline CPU to ensure maximum compatibility at the cost of performance. `cozy-chess` benefits significantly from features present in modern CPUs. For maximum performance, the target CPU can instead be set to `native` to use features supported by the machine running the build. Alternatively, the target CPU can be set to `x86-64-v3`, which will produce binaries that run on most modern CPUs. The target CPU may be changed by adding `-C target-cpu=<CPU>` to `RUSTFLAGS`.
