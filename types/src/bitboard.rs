@@ -162,6 +162,111 @@ impl BitBoard {
         X X X X X X X X
     };
 
+    /// The corners of the board.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(BitBoard::CORNERS, bitboard! {
+    ///     X . . . . . . X
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     X . . . . . . X
+    /// });
+    /// ```
+    pub const CORNERS: BitBoard = bitboard! {
+        X . . . . . . X
+        . . . . . . . .
+        . . . . . . . .
+        . . . . . . . .
+        . . . . . . . .
+        . . . . . . . .
+        . . . . . . . .
+        X . . . . . . X
+    };
+
+    /// The dark squares on the board.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(BitBoard::DARK_SQUARES, bitboard! {
+    ///     . X . X . X . X
+    ///     X . X . X . X .
+    ///     . X . X . X . X
+    ///     X . X . X . X .
+    ///     . X . X . X . X
+    ///     X . X . X . X .
+    ///     . X . X . X . X
+    ///     X . X . X . X .
+    /// });
+    /// ```
+    pub const DARK_SQUARES: BitBoard = bitboard! {
+        . X . X . X . X
+        X . X . X . X .
+        . X . X . X . X
+        X . X . X . X .
+        . X . X . X . X
+        X . X . X . X .
+        . X . X . X . X
+        X . X . X . X .
+    };
+
+    /// The light squares on the board.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(BitBoard::LIGHT_SQUARES, bitboard! {
+    ///     X . X . X . X .
+    ///     . X . X . X . X
+    ///     X . X . X . X .
+    ///     . X . X . X . X
+    ///     X . X . X . X .
+    ///     . X . X . X . X
+    ///     X . X . X . X .
+    ///     . X . X . X . X
+    /// });
+    /// ```
+    pub const LIGHT_SQUARES: BitBoard = bitboard! {
+        X . X . X . X .
+        . X . X . X . X
+        X . X . X . X .
+        . X . X . X . X
+        X . X . X . X .
+        . X . X . X . X
+        X . X . X . X .
+        . X . X . X . X
+    };
+
+    /// Sus.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(BitBoard::AMOGUS, bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . X X X . . .
+    ///     . . X . X X . .
+    ///     . . X X X X . .
+    ///     . . X . X . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// });
+    /// ```
+    #[doc(hidden)]
+    pub const AMOGUS: BitBoard = bitboard! {
+        . . . . . . . .
+        . . . . . . . .
+        . . X X X . . .
+        . . X . X X . .
+        . . X X X X . .
+        . . X . X . . .
+        . . . . . . . .
+        . . . . . . . .
+    };
+    
     /// Flip the bitboard's ranks.
     /// # Examples
     /// ```
