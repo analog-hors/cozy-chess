@@ -37,9 +37,9 @@ impl Board {
         for &color in &Color::ALL {
             let pieces = self.colors(color);
             let no_pawn_mask = Rank::First.bitboard() | Rank::Eighth.bitboard();
-            soft_assert!(pieces.popcnt() <= 16);
-            soft_assert!((pieces & self.pieces(Piece::King)).popcnt() == 1);
-            soft_assert!((pieces & self.pieces(Piece::Pawn)).popcnt() <= 8);
+            soft_assert!(pieces.len() <= 16);
+            soft_assert!((pieces & self.pieces(Piece::King)).len() == 1);
+            soft_assert!((pieces & self.pieces(Piece::Pawn)).len() <= 8);
             soft_assert!((pieces & self.pieces(Piece::Pawn) & no_pawn_mask).is_empty());
         }
         
@@ -93,7 +93,7 @@ impl Board {
         let (checkers, pinned) = self.calculate_checkers_and_pins(self.side_to_move());
         soft_assert!(self.checkers() == checkers);
         soft_assert!(self.pinned() == pinned);
-        soft_assert!(self.checkers().popcnt() < 3);
+        soft_assert!(self.checkers().len() < 3);
         true
     }
 
@@ -125,7 +125,7 @@ impl Board {
         for attacker in their_attackers {
             let between = get_between_rays(attacker, our_king) &
                 self.occupied();
-            match between.popcnt() {
+            match between.len() {
                 0 => checkers |= attacker.bitboard(),
                 1 => pinned |= between,
                 _ => {}

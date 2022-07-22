@@ -339,7 +339,7 @@ impl BitBoard {
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
-    /// assert_eq!(BitBoard::EMPTY.popcnt(), 0);
+    /// assert_eq!(BitBoard::EMPTY.len(), 0);
     /// let bb = bitboard! {
     ///     . . . . . . . .
     ///     . . . . . . . .
@@ -350,10 +350,10 @@ impl BitBoard {
     ///     . . . . . . . .
     ///     . . . . . . . .
     /// };
-    /// assert_eq!(bb.popcnt(), 12);
+    /// assert_eq!(bb.len(), 12);
     /// ```
     #[inline(always)]
-    pub const fn popcnt(self) -> u32 {
+    pub const fn len(self) -> u32 {
         self.0.count_ones()
     }
 
@@ -565,7 +565,7 @@ impl Iterator for BitBoardIter {
 impl ExactSizeIterator for BitBoardIter {
     #[inline(always)]
     fn len(&self) -> usize {
-        self.0.popcnt() as usize
+        self.0.len() as usize
     }
 }
 

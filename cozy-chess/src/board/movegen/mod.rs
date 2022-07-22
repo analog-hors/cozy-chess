@@ -357,7 +357,7 @@ impl Board {
     pub fn generate_moves_for(
         &self, mask: BitBoard, mut listener: impl FnMut(PieceMoves) -> bool
     ) -> bool {
-        match self.checkers().popcnt() {
+        match self.checkers().len() {
             0 => self.add_all_legals::<_, false>(mask, &mut listener),
             1 => self.add_all_legals::<_, true>(mask, &mut listener),
             _ => self.add_king_legals::<_, true>(mask, &mut listener)
@@ -413,7 +413,7 @@ impl Board {
             return false;
         }
 
-        let target_squares = match self.checkers().popcnt() {
+        let target_squares = match self.checkers().len() {
             0 => self.target_squares::<false>(),
             1 => self.target_squares::<true>(),
             _ => return false,

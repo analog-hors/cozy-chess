@@ -522,7 +522,7 @@ impl Board {
     
             for square in their_attackers {
                 let between = get_between_rays(square, our_king) & board.occupied();
-                if between.popcnt() == 1 {
+                if between.len() == 1 {
                     board.pinned |= between;
                 }
             }
@@ -714,7 +714,7 @@ impl Board {
         );
         for square in our_attackers {
             let between = get_between_rays(square, their_king) & self.occupied();
-            match between.popcnt() {
+            match between.len() {
                 0 => self.checkers |= square.bitboard(),
                 1 => self.pinned |= between,
                 _ => {}

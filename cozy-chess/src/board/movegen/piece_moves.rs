@@ -32,10 +32,10 @@ impl PieceMoves {
             Rank::First.bitboard().0 | Rank::Eighth.bitboard().0
         );
         let moves = if self.piece == Piece::Pawn {
-            (self.to & !PROMOTION_MASK).popcnt() +
-            (self.to & PROMOTION_MASK).popcnt() * 4
+            (self.to & !PROMOTION_MASK).len() +
+            (self.to & PROMOTION_MASK).len() * 4
         } else {
-            self.to.popcnt()
+            self.to.len()
         };
         moves as usize
     }
