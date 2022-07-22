@@ -59,15 +59,15 @@ impl Board {
     }
 
     /// Get a board with a chess960 start position.
-    /// Converts a [scharnagl number](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
+    /// Converts a [Scharnagl number](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
     /// to its corresponding position.
     /// # Panics
-    /// Panic if either scharnagl number is invalid (not within the range 0..960).
+    /// Panic if the Scharnagl number is invalid (not within the range 0..960).
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
     /// let startpos = Board::default();
-    /// // 518 is the scharnagl number for the default start position.
+    /// // 518 is the Scharnagl number for the default start position.
     /// let board = Board::chess960_startpos(518);
     /// assert_eq!(board, startpos);
     /// ```
@@ -76,15 +76,15 @@ impl Board {
     }
 
     /// Get a board with a double chess960 start position.
-    /// Uses two [scharnagl numbers](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
+    /// Uses two [Scharnagl numbers](https://en.wikipedia.org/wiki/Fischer_random_chess_numbering_scheme)
     /// for the initial setup for white and the initial setup for black.
     /// # Panics
-    /// Panic if either scharnagl number is invalid (not within the range 0..960).
+    /// Panic if either Scharnagl number is invalid (not within the range 0..960).
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
     /// let startpos = Board::default();
-    /// // 518 is the scharnagl number for the default start position.
+    /// // 518 is the Scharnagl number for the default start position.
     /// let board = Board::double_chess960_startpos(518, 518);
     /// assert_eq!(board, startpos);
     /// ```
