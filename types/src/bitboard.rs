@@ -539,6 +539,12 @@ impl IntoIterator for BitBoard {
     }
 }
 
+impl FromIterator<Square> for BitBoard {
+    fn from_iter<T: IntoIterator<Item = Square>>(iter: T) -> Self {
+        iter.into_iter().fold(BitBoard::EMPTY, |bb, sq| bb | sq.bitboard())
+    }
+}
+
 /// An iterator over the squares of a bitboard.
 /// 
 /// This `struct` is created by [`BitBoard::iter`]. See its documentation for more.
