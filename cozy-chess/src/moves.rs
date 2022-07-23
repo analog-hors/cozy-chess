@@ -29,6 +29,7 @@ include!(concat!(env!("OUT_DIR"), "/sliding_moves.rs"));
 ///     . . . X . . . .
 /// });
 /// ```
+#[inline(always)]
 pub fn get_rook_moves(square: Square, blockers: BitBoard) -> BitBoard {
     BitBoard(SLIDING_MOVES[get_rook_moves_index(square, blockers)])
 }
@@ -65,6 +66,7 @@ pub const fn get_rook_moves_const(square: Square, blockers: BitBoard) -> BitBoar
 ///     . X . . . X . .
 /// });
 /// ```
+#[inline(always)]
 pub fn get_bishop_moves(square: Square, blockers: BitBoard) -> BitBoard {
     BitBoard(SLIDING_MOVES[get_bishop_moves_index(square, blockers)])
 }
@@ -90,6 +92,7 @@ pub const fn get_bishop_moves_const(square: Square, blockers: BitBoard) -> BitBo
 ///     . . . X . . . .
 /// });
 /// ```
+#[inline(always)]
 pub const fn get_rook_rays(square: Square) -> BitBoard {
     const TABLE: [BitBoard; Square::NUM] = {
         let mut table = [BitBoard::EMPTY; Square::NUM];
@@ -120,6 +123,7 @@ pub const fn get_rook_rays(square: Square) -> BitBoard {
 ///     . X . . . X . .
 /// });
 /// ```
+#[inline(always)]
 pub const fn get_bishop_rays(square: Square) -> BitBoard {
     const TABLE: [BitBoard; Square::NUM] = {
         let mut table = [BitBoard::EMPTY; Square::NUM];
@@ -150,6 +154,7 @@ pub const fn get_bishop_rays(square: Square) -> BitBoard {
 ///     . . . . . . . .
 /// });
 /// ```
+#[inline(always)]
 pub const fn get_between_rays(from: Square, to: Square) -> BitBoard {
     const fn get_between_rays(from: Square, to: Square) -> BitBoard {
         let dx = to.file() as i8 - from.file() as i8;
@@ -204,6 +209,7 @@ pub const fn get_between_rays(from: Square, to: Square) -> BitBoard {
 ///     . . X . . . . .
 /// });
 /// ```
+#[inline(always)]
 pub const fn get_line_rays(from: Square, to: Square) -> BitBoard {
     const fn get_line_rays(from: Square, to: Square) -> BitBoard {
         let rays = get_bishop_rays(from);
@@ -251,6 +257,7 @@ pub const fn get_line_rays(from: Square, to: Square) -> BitBoard {
 ///     . . X . X . . .
 /// });
 /// ```
+#[inline(always)]
 pub const fn get_knight_moves(square: Square) -> BitBoard {
     const fn get_knight_moves(square: Square) -> BitBoard {
         const KNIGHT_DELTAS: [(i8, i8); 8] = [
@@ -302,6 +309,7 @@ pub const fn get_knight_moves(square: Square) -> BitBoard {
 ///     . . . . . . . .
 /// });
 /// ```
+#[inline(always)]
 pub const fn get_king_moves(square: Square) -> BitBoard {
     const fn get_king_moves(square: Square) -> BitBoard {
         const KING_DELTAS: [(i8, i8); 8] = [
@@ -353,6 +361,7 @@ pub const fn get_king_moves(square: Square) -> BitBoard {
 ///     . . . . . . . .
 /// });
 /// ```
+#[inline(always)]
 pub const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
     const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
         const PAWN_DELTAS: [[(i8, i8); 2]; Color::NUM] = [
@@ -427,6 +436,7 @@ pub const fn get_pawn_attacks(square: Square, color: Color) -> BitBoard {
 ///     . . . . . . . .
 /// });
 /// ```
+#[inline(always)]
 pub const fn get_pawn_quiets(square: Square, color: Color, blockers: BitBoard) -> BitBoard {
     let square_bb = square.bitboard();
     let mut moves = BitBoard(if let Color::White = color {
