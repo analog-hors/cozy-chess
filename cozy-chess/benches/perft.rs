@@ -38,9 +38,8 @@ fn perft(board: &Board, depth: u8) -> u32 {
         let mut nodes = 0;
         board.generate_moves(|moves| {
             for mv in moves {
-                let mut board = board.clone();
-                board.play_unchecked(mv);
-                nodes += perft(&board, depth - 1);
+                let child = board.play_unchecked(mv);
+                nodes += perft(&child, depth - 1);
             }
             false
         });
@@ -67,9 +66,8 @@ pub fn criterion_benchmark(criterion: &mut Criterion) {
             b.iter(|| {
                 for (board, moves) in &positions {
                     for &mv in moves {
-                        let mut board = board.clone();
-                        board.play_unchecked(mv);
-                        black_box(board);
+                        let child = board.play_unchecked(mv);
+                        black_box(child);
                     }
                 }
             });
