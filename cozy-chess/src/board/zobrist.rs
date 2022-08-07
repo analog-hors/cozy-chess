@@ -69,7 +69,8 @@ const ZOBRIST: ZobristConstants = {
     }
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+// This is Copy for performance reasons, since Copy guarantees a bit-for-bit copy.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ZobristBoard {
     pieces: [BitBoard; Piece::NUM],
     colors: [BitBoard; Color::NUM],
