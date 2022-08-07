@@ -3,14 +3,14 @@
 
 mod common;
 
-#[cfg(not(feature = "bmi2"))]
+#[cfg(not(feature = "pext"))]
 mod magic;
-#[cfg(feature = "bmi2")]
+#[cfg(feature = "pext")]
 mod pext;
 
 pub use common::*;
 
-#[cfg(not(feature = "bmi2"))]
+#[cfg(not(feature = "pext"))]
 pub use magic::*;
-#[cfg(feature = "bmi2")]
+#[cfg(feature = "pext")]
 pub use pext::*;

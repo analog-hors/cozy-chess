@@ -3,7 +3,7 @@ use crate::*;
 use super::common::*;
 
 #[cfg(not(all(target_arch = "x86_64", target_feature = "bmi2")))]
-compile_error!("BMI2 feature can only be enabled if target has BMI2.");
+compile_error!("pext feature can only be enabled if target has BMI2.");
 
 fn pext_u64(a: u64, mask: u64) -> u64 {
     // SAFETY: A compile error is raised if PEXT is not available. PEXT is always safe if available.
@@ -35,7 +35,7 @@ const INDEX_DATA: &PextIndexData = {
         let square = Square::index_const(i);
         let mask = get_rook_relevant_blockers(square);
         rook_data[i] = PextEntry { offset, mask };
-        offset += 1 << mask.popcnt();
+        offset += 1 << mask.len();
         i += 1;
     }
 
@@ -45,7 +45,7 @@ const INDEX_DATA: &PextIndexData = {
         let square = Square::index_const(i);
         let mask = get_bishop_relevant_blockers(square);
         bishop_data[i] = PextEntry { offset, mask };
-        offset += 1 << mask.popcnt();
+        offset += 1 << mask.len();
         i += 1;
     }
 
