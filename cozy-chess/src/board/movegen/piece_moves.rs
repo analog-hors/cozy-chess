@@ -2,7 +2,7 @@ use crate::*;
 
 /// A compact structure representing multiple moves for a piece on the board.
 /// Iterate it to unpack its moves.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PieceMoves {
     /// The [`Piece`] that is moved.
     pub piece: Piece,
