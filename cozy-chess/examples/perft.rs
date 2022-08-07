@@ -10,8 +10,9 @@ fn perft(board: &Board, depth: u8) -> u64 {
         let mut nodes = 0;
         board.generate_moves(|moves| {
             for mv in moves {
-                let child = board.play_unchecked(mv);
-                nodes += perft(&child, depth - 1);
+                let mut board = board.clone();
+                board.play_unchecked(mv);
+                nodes += perft(&board, depth - 1);
             }
             false
         });
@@ -32,8 +33,9 @@ fn perft_bulk(board: &Board, depth: u8) -> u64 {
         _ => {
             board.generate_moves(|moves| {
                 for mv in moves {
-                    let child = board.play_unchecked(mv);
-                    let child_nodes = perft_bulk(&child, depth - 1);
+                    let mut board = board.clone();
+                    board.play_unchecked(mv);
+                    let child_nodes = perft_bulk(&board, depth - 1);
                     nodes += child_nodes;
                 }
                 false

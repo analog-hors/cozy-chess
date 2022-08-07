@@ -15,8 +15,9 @@ fn perft(board: &Board, depth: u8) -> u64 {
         _ => {
             board.generate_moves(|moves| {
                 for mv in moves {
-                    let child = board.play_unchecked(mv);
-                    let child_nodes = perft(&child, depth - 1);
+                    let mut board = board.clone();
+                    board.play_unchecked(mv);
+                    let child_nodes = perft(&board, depth - 1);
                     nodes += child_nodes;
                 }
                 false
@@ -165,8 +166,9 @@ fn subset_movegen_kiwipete() {
         if depth > 0 {
             board.generate_moves(|moves| {
                 for mv in moves {
-                    let child = board.play_unchecked(mv);
-                    visit(&child, depth - 1);
+                    let mut board = board.clone();
+                    board.play_unchecked(mv);
+                    visit(&board, depth - 1);
                 }
                 false
             });

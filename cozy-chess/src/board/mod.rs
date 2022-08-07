@@ -163,7 +163,7 @@ impl Board {
     /// # use cozy_chess::*;
     /// let mut board = Board::default();
     /// assert_eq!(board.side_to_move(), Color::White);
-    /// board = board.play("e2e4".parse().unwrap());
+    /// board.play_unchecked("e2e4".parse().unwrap());
     /// assert_eq!(board.side_to_move(), Color::Black);
     /// ```
     #[inline(always)]
@@ -179,10 +179,9 @@ impl Board {
     /// let rights = board.castle_rights(Color::White);
     /// assert_eq!(rights.short, Some(File::H));
     /// assert_eq!(rights.long, Some(File::A));
-    /// board = board
-    ///     .play("e2e4".parse().unwrap())
-    ///     .play("e7e5".parse().unwrap())
-    ///     .play("e1e2".parse().unwrap());
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// board.play_unchecked("e1e2".parse().unwrap());
     /// let rights = board.castle_rights(Color::White);
     /// assert_eq!(rights.short, None);
     /// assert_eq!(rights.long, None);
@@ -199,9 +198,9 @@ impl Board {
     /// let mut board: Board = "1k2r3/2p5/p4p2/Pb6/1p1b1P1R/1P6/2P3PP/5K2 w - - 1 36"
     ///     .parse().unwrap();
     /// assert_eq!(board.en_passant(), None);
-    /// board = board.play("c2c4".parse().unwrap());
+    /// board.play_unchecked("c2c4".parse().unwrap());
     /// assert_eq!(board.en_passant(), Some(File::C));
-    /// board = board.play("b4c3".parse().unwrap());
+    /// board.play_unchecked("b4c3".parse().unwrap());
     /// assert_eq!(board.en_passant(), None);
     /// ```
     #[inline(always)]
@@ -214,11 +213,11 @@ impl Board {
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
-    /// let board = Board::default()
-    ///     .play("e2e4".parse().unwrap())
-    ///     .play("e7e5".parse().unwrap())
-    ///     .play("e1e2".parse().unwrap())
-    ///     .play("e8e7".parse().unwrap());
+    /// let mut board = Board::default();
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// board.play_unchecked("e1e2".parse().unwrap());
+    /// board.play_unchecked("e8e7".parse().unwrap());
     /// let expected: Board = "rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3"
     ///    .parse().unwrap();
     /// assert_eq!(expected.hash(), board.hash());
@@ -276,7 +275,7 @@ impl Board {
     /// let mut board: Board = "1r4r1/pbpknp1p/1b3P2/8/8/B1PB1q2/P4PPP/3R2K1 w - - 0 22"
     ///     .parse().unwrap();
     /// assert_eq!(board.checkers(), BitBoard::EMPTY);
-    /// board = board.play("d3f5".parse().unwrap());
+    /// board.play_unchecked("d3f5".parse().unwrap());
     /// assert_eq!(board.checkers(), bitboard! {
     ///     . . . . . . . .
     ///     . . . . . . . .
@@ -298,12 +297,11 @@ impl Board {
     /// # use cozy_chess::*;
     /// let mut board = Board::default();
     /// assert_eq!(board.halfmove_clock(), 0);
-    /// board = board
-    ///     .play("e2e4".parse().unwrap())
-    ///     .play("e7e5".parse().unwrap());
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
     /// // Remains at zero for pawn moves
     /// assert_eq!(board.halfmove_clock(), 0);
-    /// board = board.play("e1e2".parse().unwrap());
+    /// board.play_unchecked("e1e2".parse().unwrap());
     /// // Non-pawn move
     /// assert_eq!(board.halfmove_clock(), 1);
     /// ```
@@ -319,10 +317,9 @@ impl Board {
     /// let mut board = Board::default();
     /// // The fullmove number starts at one.
     /// assert_eq!(board.fullmove_number(), 1);
-    /// board = board
-    ///     .play("e2e4".parse().unwrap())
-    ///     .play("e7e5".parse().unwrap())
-    ///     .play("e1e2".parse().unwrap());
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// board.play_unchecked("e1e2".parse().unwrap());
     /// // 3 plies is 1.5 moves, which rounds down
     /// assert_eq!(board.fullmove_number(), 2);
     /// ```
@@ -391,7 +388,7 @@ impl Board {
     /// ];
     /// for mv in MOVES {
     ///     assert_eq!(board.status(), GameStatus::Ongoing);
-    ///     board = board.play(mv.parse().unwrap());
+    ///     board.play_unchecked(mv.parse().unwrap());
     /// }
     /// assert_eq!(board.status(), GameStatus::Won);
     /// let winner = !board.side_to_move();
@@ -409,20 +406,20 @@ impl Board {
     /// ];
     /// for mv in MOVES {
     ///     assert_eq!(board.status(), GameStatus::Ongoing);
-    ///     board = board.play(mv.parse().unwrap());
+    ///     board.play_unchecked(mv.parse().unwrap());
     /// }
     /// assert_eq!(board.status(), GameStatus::Drawn);
     /// ```
     /// ## 50 move rule
     /// ```
     /// # use cozy_chess::*;
-    /// let mut board = Board::default()
-    ///     .play("e2e4".parse().unwrap())
-    ///     .play("e7e5".parse().unwrap());
+    /// let mut board = Board::default();
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
     /// const MOVES: &[&str] = &["e1e2", "e8e7", "e2e1", "e7e8"];
     /// for mv in MOVES.iter().cycle().take(50 * 2) {
     ///     assert_eq!(board.status(), GameStatus::Ongoing);
-    ///     board = board.play(mv.parse().unwrap());
+    ///     board.play_unchecked(mv.parse().unwrap());
     /// }
     /// assert_eq!(board.status(), GameStatus::Drawn);
     /// ```
@@ -489,13 +486,13 @@ impl Board {
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
-    /// let mut board = Board::default()
-    ///     .play("f2f4".parse().unwrap())
-    ///     .play("e7e5".parse().unwrap());
+    /// let mut board = Board::default();
+    /// board.play_unchecked("f2f4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
     /// assert_eq!(board.side_to_move(), Color::White);
     /// board = board.null_move().unwrap();
     /// assert_eq!(board.side_to_move(), Color::Black);
-    /// board = board.play("d8h4".parse().unwrap());
+    /// board.play_unchecked("d8h4".parse().unwrap());
     /// // Can't leave the king in check
     /// assert!(board.null_move().is_none());
     /// ```
@@ -545,46 +542,34 @@ impl Board {
     /// ## Legal moves
     /// ```
     /// # use cozy_chess::*;
-    /// let board = Board::default()
-    ///     .play("e2e4".parse().unwrap())
-    ///     .play("e7e5".parse().unwrap())
-    ///     .play("e1e2".parse().unwrap())
-    ///     .play("e8e7".parse().unwrap());
+    /// let mut board = Board::default();
+    /// board.play("e2e4".parse().unwrap());
+    /// board.play("e7e5".parse().unwrap());
+    /// board.play("e1e2".parse().unwrap());
+    /// board.play("e8e7".parse().unwrap());
     /// const EXPECTED: &str = "rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3";
     /// assert_eq!(format!("{}", board), EXPECTED);
     /// ```
     /// ## Illegal moves
     /// ```should_panic
     /// # use cozy_chess::*;
-    /// let board = Board::default()
-    ///     .play("e1e8".parse().unwrap());
+    /// let mut board = Board::default();
+    /// board.play("e1e8".parse().unwrap());
     /// ```
-    #[must_use]
-    pub fn play(&self, mv: Move) -> Self {
-        match self.try_play(mv) {
-            Ok(board) => board,
-            Err(IllegalMoveError) => panic!("Illegal move {}", mv)
-        }
+    pub fn play(&mut self, mv: Move) {
+        assert!(self.try_play(mv).is_ok(), "Illegal move {}!", mv);
     }
 
     /// Non-panicking version of [`Board::play`].
-    /// Tries to play a move, returning the board on success.
+    /// Tries to play a move, returning `Ok(())` on success.
     /// # Errors
     /// Errors with [`IllegalMoveError`] if the move was illegal.
-    /// # Examples
-    /// ```
-    /// # use cozy_chess::*;
-    /// let board = Board::default();
-    /// let legal = "e2e4".parse().unwrap();
-    /// let illegal = "e1e8".parse().unwrap();
-    /// assert!(board.try_play(legal).is_ok());
-    /// assert!(board.try_play(illegal).is_err());
-    /// ```
-    pub fn try_play(&self, mv: Move) -> Result<Board, IllegalMoveError> {
+    pub fn try_play(&mut self, mv: Move) -> Result<(), IllegalMoveError> {
         if !self.is_legal(mv) {
             return Err(IllegalMoveError);
         }
-        Ok(self.play_unchecked(mv))
+        self.play_unchecked(mv);
+        Ok(())
     }
 
     /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
@@ -598,22 +583,15 @@ impl Board {
     /// # Examples
     /// ```
     /// # use cozy_chess::*;
-    /// let board = Board::default()
-    ///     .play_unchecked("e2e4".parse().unwrap())
-    ///     .play_unchecked("e7e5".parse().unwrap())
-    ///     .play_unchecked("e1e2".parse().unwrap())
-    ///     .play_unchecked("e8e7".parse().unwrap());
+    /// let mut board = Board::default();
+    /// board.play_unchecked("e2e4".parse().unwrap());
+    /// board.play_unchecked("e7e5".parse().unwrap());
+    /// board.play_unchecked("e1e2".parse().unwrap());
+    /// board.play_unchecked("e8e7".parse().unwrap());
     /// const EXPECTED: &str = "rnbq1bnr/ppppkppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR w - - 2 3";
     /// assert_eq!(format!("{}", board), EXPECTED);
     /// ```
-    #[must_use]
-    pub fn play_unchecked(&self, mv: Move) -> Self {
-        let mut board = self.clone();
-        board.play_unchecked_in_place(mv);
-        board
-    }
-
-    fn play_unchecked_in_place(&mut self, mv: Move) {
+    pub fn play_unchecked(&mut self, mv: Move) {
         self.pinned = BitBoard::EMPTY;
         self.checkers = BitBoard::EMPTY;
 
@@ -790,7 +768,7 @@ mod tests {
             ("d7d6", "2kr3r/p5B1/1nppp1p1/1b6/1P3P2/pn6/1NP4Q/2RK1B2 w - - 0 17")
         ];
         for &(mv, expected) in MOVES {
-            board = board.play_unchecked(mv.parse().unwrap());
+            board.play_unchecked(mv.parse().unwrap());
             println!("{}, {}", mv, board.hash());
             assert_eq!(format!("{}", board), expected);
             assert_eq!(board.hash(), expected.parse::<Board>().unwrap().hash());
