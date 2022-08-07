@@ -218,10 +218,10 @@ mod tests {
             let mut board_a = board.clone();
             let mut board_b = board.clone();
             for mv in moves_a {
-                board_a = board_a.play_unchecked(mv.parse().unwrap());
+                board_a.play_unchecked(mv.parse().unwrap());
             }
             for mv in moves_b {
-                board_b = board_b.play_unchecked(mv.parse().unwrap());
+                board_b.play_unchecked(mv.parse().unwrap());
             }
             assert_eq!(board_a.hash(), board_b.hash(), "Test {}", i + 1);
         }
