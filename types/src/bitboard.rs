@@ -651,16 +651,19 @@ macro_rules! __bitboard {
         }
     };
     (@__inner $($occupied:tt)*) => {{
-        let mut index = 0;
-        let mut bitboard = $crate::BitBoard::EMPTY;
-        $(
-            if $crate::__bitboard!(@__square $occupied) {
-                bitboard.0 |= 1 << index;
-            }
-            index += 1;
-        )*
-        let _ = index;
-        bitboard
+        const BITBOARD: $crate::BitBoard = {
+            let mut index = 0;
+            let mut bitboard = $crate::BitBoard::EMPTY;
+            $(
+                if $crate::__bitboard!(@__square $occupied) {
+                    bitboard.0 |= 1 << index;
+                }
+                index += 1;
+            )*
+            let _ = index;
+            bitboard
+        };
+        BITBOARD
     }};
     (@__square X) => { true };
     (@__square .) => { false };
