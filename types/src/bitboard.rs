@@ -101,6 +101,13 @@ macro_rules! impl_convert {
 }
 impl_convert!(File, Rank, Square);
 
+// Rustdoc currently has a bug where it attempts to guess how to display a constant for some reason.
+// This has the amazing effect of expanding the `bitboard!` macro's implementation,
+// making the docs completely unreadable. This is why constants defined with `bitboard!` use two constants.
+// Relevant issues:
+// https://github.com/rust-lang/rust/issues/99630
+// https://github.com/rust-lang/rust/issues/98929
+
 impl BitBoard {
     /// An empty bitboard.
     /// # Examples
@@ -151,7 +158,8 @@ impl BitBoard {
     ///     X X X X X X X X
     /// });
     /// ```
-    pub const EDGES: BitBoard = bitboard! {
+    pub const EDGES: Self = Self::__EDGES;
+    const __EDGES: Self = bitboard! {
         X X X X X X X X
         X . . . . . . X
         X . . . . . . X
@@ -177,7 +185,8 @@ impl BitBoard {
     ///     X . . . . . . X
     /// });
     /// ```
-    pub const CORNERS: BitBoard = bitboard! {
+    pub const CORNERS: Self = Self::__CORNERS;
+    const __CORNERS: Self = bitboard! {
         X . . . . . . X
         . . . . . . . .
         . . . . . . . .
@@ -203,7 +212,8 @@ impl BitBoard {
     ///     X . X . X . X .
     /// });
     /// ```
-    pub const DARK_SQUARES: BitBoard = bitboard! {
+    pub const DARK_SQUARES: Self = Self::__DARK_SQUARES;
+    const __DARK_SQUARES: Self = bitboard! {
         . X . X . X . X
         X . X . X . X .
         . X . X . X . X
@@ -229,7 +239,8 @@ impl BitBoard {
     ///     . X . X . X . X
     /// });
     /// ```
-    pub const LIGHT_SQUARES: BitBoard = bitboard! {
+    pub const LIGHT_SQUARES: Self = Self::__LIGHT_SQUARES;
+    const __LIGHT_SQUARES: Self = bitboard! {
         X . X . X . X .
         . X . X . X . X
         X . X . X . X .
@@ -256,7 +267,7 @@ impl BitBoard {
     /// });
     /// ```
     #[doc(hidden)]
-    pub const AMOGUS: BitBoard = bitboard! {
+    pub const AMOGUS: Self = bitboard! {
         . . . . . . . .
         . . . . . . . .
         . . X X X . . .
