@@ -5,6 +5,7 @@
 - Added PEXT bitboards using the BMI2 PEXT intrinsic. Potentially faster than the default algorithm. Enable using the `pext` feature. 
 - Added `hash_without_ep` method for fast equivalence checks excluding the en passant square.
 - Added `Board::same_position` to check if two boards are equivalent under FIDE rules.
+- Added `Board::colored_pieces`, a shorthand for `board.colors(color) & board.pieces(piece)`.
 
 ### Changed (**breaking**)
 - `BitBoard`s now operate in a more set-wise manner instead of acting like a `u64`. Bit operators changed to match set operators.

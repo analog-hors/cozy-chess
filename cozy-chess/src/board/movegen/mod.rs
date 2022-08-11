@@ -69,7 +69,7 @@ impl Board {
     >(&self, mask: BitBoard, listener: &mut F) -> bool {
         let color = self.side_to_move();
         let our_king = self.king(color);
-        let pieces = self.pieces(P::PIECE) & self.colors(color) & mask;
+        let pieces = self.colored_pieces(color, P::PIECE) & mask;
         let pinned = self.pinned();
         let blockers = self.occupied();
         let target_squares = self.target_squares::<IN_CHECK>();
@@ -108,7 +108,7 @@ impl Board {
         const PIECE: Piece = Piece::Knight;
 
         let color = self.side_to_move();
-        let pieces = self.pieces(PIECE) & self.colors(color) & mask;
+        let pieces = self.colored_pieces(color, PIECE) & mask;
         let pinned = self.pinned();
         let target_squares = self.target_squares::<IN_CHECK>();
 
@@ -132,7 +132,7 @@ impl Board {
 
         let color = self.side_to_move();
         let our_king = self.king(color);
-        let pieces = self.pieces(PIECE) & self.colors(color) & mask;
+        let pieces = self.colored_pieces(color, PIECE) & mask;
         let their_pieces = self.colors(!color);
         let pinned = self.pinned();
         let blockers = self.occupied();
@@ -221,7 +221,7 @@ impl Board {
         let color = self.side_to_move();
         let their_pieces = self.colors(!color);
         let blockers = self.occupied()
-            ^ (self.pieces(Piece::King) & self.colors(color))
+            ^ self.colored_pieces(color, Piece::King)
             | square.bitboard();
         short_circuit! {
             get_bishop_moves(square, blockers) & their_pieces & (

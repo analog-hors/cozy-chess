@@ -136,6 +136,29 @@ impl Board {
         self.inner.colors(color)
     }
 
+    /// Get a [`BitBoard`] of all the pieces of a certain color and type.
+    /// Shorthand for `board.colors(color) & board.pieces(piece)`.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let board = Board::default();
+    /// let white_pawns = board.colored_pieces(Color::White, Piece::Pawn);
+    /// assert_eq!(white_pawns, bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     X X X X X X X X
+    ///     . . . . . . . .
+    /// });
+    /// ```
+    #[inline(always)]
+    pub fn colored_pieces(&self, color: Color, piece: Piece) -> BitBoard {
+        self.colors(color) & self.pieces(piece)
+    }
+
     /// Get a [`BitBoard`] of all the pieces on the board.
     /// # Examples
     /// ```
@@ -367,7 +390,7 @@ impl Board {
     /// ```
     #[inline(always)]
     pub fn king(&self, color: Color) -> Square {
-        (self.pieces(Piece::King) & self.colors(color))
+        self.colored_pieces(color, Piece::King)
             .next_square()
             .expect("No king was found.")
     }
