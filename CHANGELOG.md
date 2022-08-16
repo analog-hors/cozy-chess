@@ -22,3 +22,4 @@
 - Overflow bug in `Square::try_offset` fixed.
 - `FenParseError` is no longer unnameable.
 - Fixed incorrect errors being returned in FEN parsing.
+- Fixed some errors not being produced in FEN parsing.

@@ -78,6 +78,10 @@ impl Board {
             return Err(InvalidFullmoveNumber);
         }
 
+        if parts.next().is_some() {
+            return Err(TooManyFields);
+        }
+
         let (checkers, pinned) = board.calculate_checkers_and_pins(board.side_to_move());
         board.checkers = checkers;
         board.pinned = pinned;
