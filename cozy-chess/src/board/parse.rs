@@ -202,7 +202,11 @@ impl FromStr for Board {
     /// assert_eq!(format!("{}", board), STARTPOS);
     /// ```
     fn from_str(fen: &str) -> Result<Self, Self::Err> {
-        Self::from_fen(fen, false).or_else(|_| Self::from_fen(fen, true))
+        match Self::from_fen(fen, false) {
+            Ok(board) => Ok(board),
+            Err(FenParseError::InvalidCastlingRights) => Self::from_fen(fen, true),
+            Err(error) => Err(error)
+        }
     }
 }
 
