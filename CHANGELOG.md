@@ -6,6 +6,7 @@
 - Added `hash_without_ep` method for fast equivalence checks excluding the en passant square.
 - Added `Board::same_position` to check if two boards are equivalent under FIDE rules.
 - Added `Board::colored_pieces`, a shorthand for `board.colors(color) & board.pieces(piece)`.
+- Added `BitBoard::is_subset`, `BitBoard::is_superset`, and `BitBoard::is_disjoint`.
 
 ### Changed (**breaking**)
 - `BitBoard`s now operate in a more set-wise manner instead of acting like a `u64`. Bit operators changed to match set operators.
