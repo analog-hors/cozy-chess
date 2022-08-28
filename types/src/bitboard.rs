@@ -387,7 +387,38 @@ impl BitBoard {
     /// ```
     #[inline(always)]
     pub const fn has(self, square: Square) -> bool {
-        self.is_superset(square.bitboard())
+        !self.is_disjoint(square.bitboard())
+    }
+
+    /// Check if a bitboard contains no squares in common with another
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// let bb_a = bitboard! {
+    ///     X X X . . . . .
+    ///     X . X X . . . .
+    ///     X X X X . . . .
+    ///     X . X . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    /// };
+    /// let bb_b = bitboard! {
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . . . . .
+    ///     . . . . X X X .
+    ///     . . . . X . X X
+    ///     . . . . X X X X
+    ///     . . . . X . X .
+    /// };
+    /// assert!(bb_a.is_disjoint(bb_b));
+    /// ```
+    #[inline(always)]
+    pub const fn is_disjoint(self, other: BitBoard) -> bool {
+        self.0 & other.0 == Self::EMPTY.0
     }
 
     /// Check if a bitboard is a subset of another.
@@ -471,7 +502,7 @@ impl BitBoard {
     /// ```
     #[inline(always)]
     pub const fn is_empty(self) -> bool {
-        self.0 == BitBoard::EMPTY.0
+        self.0 == Self::EMPTY.0
     }
 
     /// Grabs the first square if the bitboard is not empty.
@@ -533,7 +564,7 @@ impl BitBoard {
     pub fn iter_subsets(self) -> BitBoardSubsetIter {
         BitBoardSubsetIter {
             set: self,
-            subset: BitBoard::EMPTY,
+            subset: Self::EMPTY,
             finished: false
         }
     }
@@ -552,7 +583,7 @@ impl IntoIterator for BitBoard {
 
 impl FromIterator<Square> for BitBoard {
     fn from_iter<T: IntoIterator<Item = Square>>(iter: T) -> Self {
-        iter.into_iter().fold(BitBoard::EMPTY, |bb, sq| bb | sq.bitboard())
+        iter.into_iter().fold(Self::EMPTY, |bb, sq| bb | sq.bitboard())
     }
 }
 
