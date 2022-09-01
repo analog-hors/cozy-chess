@@ -9,7 +9,6 @@ description = "Rust Chess and Chess960 move generation library"
 homepage = "https://github.com/analog-hors/cozy-chess/"
 repository = "https://github.com/analog-hors/cozy-chess/"
 keywords = ["chess", "no_std"]
-readme = "../README.md"
 categories = ["games", "no-std"]
 
 [dependencies]
