@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{Square, File, Rank};
 
 use core::ops::*;
 
@@ -390,7 +390,7 @@ impl BitBoard {
         !self.is_disjoint(square.bitboard())
     }
 
-    /// Check if a bitboard contains no squares in common with another
+    /// Check if a bitboard contains no squares in common with another.
     /// # Examples
     /// ```
     /// # use cozy_chess_types::*;
@@ -659,7 +659,7 @@ impl Iterator for BitBoardSubsetIter {
 /// assert_eq!(bb, File::D.bitboard() ^ Rank::Third.bitboard());
 /// ```
 #[macro_export]
-macro_rules! __bitboard {
+macro_rules! bitboard {
     (
         $a8:tt $b8:tt $c8:tt $d8:tt $e8:tt $f8:tt $g8:tt $h8:tt
         $a7:tt $b7:tt $c7:tt $d7:tt $e7:tt $f7:tt $g7:tt $h7:tt
@@ -670,7 +670,7 @@ macro_rules! __bitboard {
         $a2:tt $b2:tt $c2:tt $d2:tt $e2:tt $f2:tt $g2:tt $h2:tt
         $a1:tt $b1:tt $c1:tt $d1:tt $e1:tt $f1:tt $g1:tt $h1:tt
     ) => {
-        $crate::__bitboard! { @__inner
+        $crate::bitboard! { @__inner
             $a1 $b1 $c1 $d1 $e1 $f1 $g1 $h1
             $a2 $b2 $c2 $d2 $e2 $f2 $g2 $h2
             $a3 $b3 $c3 $d3 $e3 $f3 $g3 $h3
@@ -686,7 +686,7 @@ macro_rules! __bitboard {
             let mut index = 0;
             let mut bitboard = $crate::BitBoard::EMPTY;
             $(
-                if $crate::__bitboard!(@__square $occupied) {
+                if $crate::bitboard!(@__square $occupied) {
                     bitboard.0 |= 1 << index;
                 }
                 index += 1;
@@ -711,7 +711,7 @@ macro_rules! __bitboard {
         compile_error!("Expected 64 squares")
     };
 }
-pub use __bitboard as bitboard;
+pub use bitboard as bitboard;
 
 impl core::fmt::Debug for BitBoard {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

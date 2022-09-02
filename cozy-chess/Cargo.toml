@@ -12,10 +12,10 @@ keywords = ["chess", "no_std"]
 categories = ["games", "no-std"]
 
 [dependencies]
-cozy-chess-types = { path = "../types", version = "0.2.0" }
+cozy-chess-types = { path = "../types", version = "0.2.1" }
 
 [build-dependencies]
-cozy-chess-types = { path = "../types", version = "0.2.0" }
+cozy-chess-types = { path = "../types", version = "0.2.1" }
 
 [dev-dependencies]
 criterion = "0.3.5"
