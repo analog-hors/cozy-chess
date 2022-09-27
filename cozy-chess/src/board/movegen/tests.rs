@@ -138,7 +138,7 @@ make_perft_test! {
         24504,
         763454,
         22763215,
-        731511256 
+        731511256
     );
 }
 
@@ -175,7 +175,8 @@ fn subset_movegen_kiwipete() {
         }
     }
     let board = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
-        .parse().unwrap();
+        .parse()
+        .unwrap();
     visit(&board, 4);
 }
 
@@ -241,7 +242,12 @@ fn legality_castles() {
         "r1bqk2r/ppppbp1p/2n2npB/4p3/4P3/2NP1N2/PPPQBPPP/R2K3R b q - 7 8"
             .parse()
             .unwrap(),
-    )
+    );
+    test_is_legal(
+        "rnbqkbn1/pppprppp/8/8/8/8/PPPP1PPP/RNBQK2R w KQq - 0 1"
+            .parse()
+            .unwrap(),
+    );
 }
 
 #[test]
