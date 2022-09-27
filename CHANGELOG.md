@@ -1,5 +1,10 @@
 # Changelog
-## v0.3
+
+## v0.3.1
+### Fixed
+- Fixed bug where `Board::is_legal` said castles while in check were legal.
+
+## v0.3.0
 ### Added
 - Added methods for obtaining Chess960 start positions from their Scharnagl number.
 - Added PEXT bitboards using the BMI2 PEXT intrinsic. Potentially faster than the default algorithm. Enable using the `pext` feature. 
