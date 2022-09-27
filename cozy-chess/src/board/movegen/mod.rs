@@ -365,18 +365,20 @@ impl Board {
     }
 
     fn king_is_legal(&self, mv: Move) -> bool {
-        let castles = self.castle_rights(self.side_to_move());
-        let back_rank = Rank::First.relative_to(self.side_to_move());
-        if let Some(rook) = castles.short {
-            let rook_square = Square::new(rook, back_rank);
-            if rook_square == mv.to && self.can_castle(rook, File::G, File::F) {
-                return true;
+        if self.checkers.is_empty() {
+            let castles = self.castle_rights(self.side_to_move());
+            let back_rank = Rank::First.relative_to(self.side_to_move());
+            if let Some(rook) = castles.short {
+                let rook_square = Square::new(rook, back_rank);
+                if rook_square == mv.to && self.can_castle(rook, File::G, File::F) {
+                    return true;
+                }
             }
-        }
-        if let Some(rook) = castles.long {
-            let rook_square = Square::new(rook, back_rank);
-            if rook_square == mv.to && self.can_castle(rook, File::C, File::D) {
-                return true;
+            if let Some(rook) = castles.long {
+                let rook_square = Square::new(rook, back_rank);
+                if rook_square == mv.to && self.can_castle(rook, File::C, File::D) {
+                    return true;
+                }
             }
         }
         if !(get_king_moves(mv.from) & !self.colors(self.side_to_move())).has(mv.to) {
