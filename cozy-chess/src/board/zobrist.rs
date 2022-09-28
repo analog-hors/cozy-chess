@@ -14,14 +14,18 @@ struct ZobristConstants {
 }
 
 const ZOBRIST: ZobristConstants = {
-    // Simple Pcg64Mcg impl
-    let mut state = 0x7369787465656E2062797465206E756Du128 | 1;
+    let trng_values = include_bytes!("trng.bin");
+    let mut trng_index = 0;
     macro_rules! rand {
         () => {{
-            state = state.wrapping_mul(0x2360ED051FC65DA44385DF649FCCF645);
-            let rot = (state >> 122) as u32;
-            let xsl = (state >> 64) as u64 ^ state as u64;
-            xsl.rotate_right(rot)
+            let mut buffer = 0u64.to_le_bytes();
+            let mut i = 0;
+            while i < buffer.len() {
+                buffer[i] = trng_values[trng_index];
+                trng_index += 1;
+                i += 1;
+            }
+            u64::from_le_bytes(buffer)
         }};
     }
 
