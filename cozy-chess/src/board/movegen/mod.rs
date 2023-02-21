@@ -171,11 +171,11 @@ impl Board {
         }
 
         if let Some(en_passant) = self.en_passant() {
-            let their_bishops = their_pieces & (
+            let their_diagonal_sliders = their_pieces & (
                 self.pieces(Piece::Bishop) |
                 self.pieces(Piece::Queen)
             );
-            let their_rooks = their_pieces & (
+            let their_orthogonal_sliders = their_pieces & (
                 self.pieces(Piece::Rook) |
                 self.pieces(Piece::Queen)
             );
@@ -189,12 +189,12 @@ impl Board {
                     ^ piece.bitboard()
                     | dest.bitboard();
                 //First test a basic ray to prevent an expensive magic lookup
-                let on_ray = !(get_bishop_rays(our_king) & their_bishops).is_empty();
-                if on_ray && !(get_bishop_moves(our_king, blockers) & their_bishops).is_empty() {
+                let on_ray = !(get_bishop_rays(our_king) & their_diagonal_sliders).is_empty();
+                if on_ray && !(get_bishop_moves(our_king, blockers) & their_diagonal_sliders).is_empty() {
                     continue;
                 }
-                let on_ray = !(get_rook_rays(our_king) & their_rooks).is_empty();
-                if on_ray && !(get_rook_moves(our_king, blockers) & their_rooks).is_empty() {
+                let on_ray = !(get_rook_rays(our_king) & their_orthogonal_sliders).is_empty();
+                if on_ray && !(get_rook_moves(our_king, blockers) & their_orthogonal_sliders).is_empty() {
                     continue;
                 }
                 abort_if!(listener(PieceMoves {

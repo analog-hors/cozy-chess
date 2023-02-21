@@ -296,9 +296,6 @@ impl BoardBuilder {
         self.add_halfmove_clock (&mut board).map_err(|_| InvalidHalfMoveClock)?;
         self.add_fullmove_number(&mut board).map_err(|_| InvalidFullmoveNumber)?;
         
-        let (checkers, pinned) = board.calculate_checkers_and_pins(board.side_to_move());
-        board.checkers = checkers;
-        board.pinned = pinned;
         Ok(board)
     }
 
@@ -314,6 +311,11 @@ impl BoardBuilder {
         if !board.board_is_valid() {
             return Err(());
         }
+
+        let (checkers, pinned) = board.calculate_checkers_and_pins(board.side_to_move());
+        board.checkers = checkers;
+        board.pinned = pinned;
+
         Ok(())
     }
 
