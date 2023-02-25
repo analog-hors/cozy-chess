@@ -50,6 +50,7 @@ impl Board {
         };
         let mut parts = fen.split(' ');
         let mut next = || parts.next().ok_or(MissingField);
+        
         Self::parse_board(&mut board, next()?)
             .map_err(|_| InvalidBoard)?;
         Self::parse_side_to_move(&mut board, next()?)
@@ -57,21 +58,32 @@ impl Board {
         if !board.board_is_valid() {
             return Err(InvalidBoard);
         }
+
+        let (checkers, pinned) = board.calculate_checkers_and_pins(board.side_to_move());
+        board.checkers = checkers;
+        board.pinned = pinned;
+        if !board.checkers_and_pins_are_valid() {
+            return Err(InvalidBoard);
+        }
+
         Self::parse_castle_rights(&mut board, next()?, shredder)
             .map_err(|_| InvalidCastlingRights)?;
         if !board.castle_rights_are_valid() {
             return Err(InvalidCastlingRights);
         }
+
         Self::parse_en_passant(&mut board, next()?)
             .map_err(|_| InvalidEnPassant)?;
         if !board.en_passant_is_valid() {
             return Err(InvalidEnPassant);
         }
+
         Self::parse_halfmove_clock(&mut board, next()?)
             .map_err(|_| InvalidHalfMoveClock)?;
         if !board.halfmove_clock_is_valid() {
             return Err(InvalidHalfMoveClock);
         }
+
         Self::parse_fullmove_number(&mut board, next()?)
             .map_err(|_| InvalidFullmoveNumber)?;
         if !board.fullmove_number_is_valid() {
@@ -80,13 +92,6 @@ impl Board {
 
         if parts.next().is_some() {
             return Err(TooManyFields);
-        }
-
-        let (checkers, pinned) = board.calculate_checkers_and_pins(board.side_to_move());
-        board.checkers = checkers;
-        board.pinned = pinned;
-        if !board.checkers_and_pins_are_valid() {
-            return Err(InvalidBoard);
         }
 
         Ok(board)
@@ -301,10 +306,21 @@ mod tests {
     #[test]
     fn handles_valid_fens() {
         for fen in include_str!("test_data/valid.sfens").lines() {
-            let board = Board::from_fen(&fen, true).unwrap();
+            let board = Board::from_fen(fen, true).unwrap();
             assert!(board.validity_check());
         }
     }
 
-    //No invalid FEN test yet due to lack of invalid FEN data.
+    #[test]
+    fn handles_invalid_fens() {
+        for fen in include_str!("test_data/invalid.sfens").lines() {
+            assert!(Board::from_fen(fen, true).is_err(), "FEN \"{}\" should not parse", fen);
+        }
+    }
+
+    #[test]
+    fn invalid_ep_fen() {
+        let fen = "4k3/8/5N2/8/2pP4/8/8/4K3 b - d3 0 1";
+        assert!(matches!(fen.parse::<Board>(), Err(FenParseError::InvalidEnPassant)));
+    }
 }
