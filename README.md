@@ -1,11 +1,35 @@
 # `cozy-chess`
 
 ## Rust Chess and Chess960 move generation library
-[![crates.io](https://img.shields.io/crates/v/cozy-chess.svg)](https://crates.io/crates/cozy-chess)
+<a href="https://crates.io/crates/cozy-chess">
+    <img
+        src="https://img.shields.io/crates/v/cozy-chess.svg"
+        alt="crates.io"
+        height="24em"
+    >
+</a>
+<a href="https://ko-fi.com/P5P2JWI4P">
+    <img
+        src="https://img.shields.io/badge/Ko--fi-Support%20me%20on%20Ko--fi-FF5E5B?logo=kofi&logoColor=white"
+        alt="crates.io"
+        height="24em"
+    >
+</a>
+<span>
+    <img
+        src="https://raw.githubusercontent.com/analog-hors/cozy-chess/45ba7a253ed82c5e9f3004d224cfab19473fcee7/img/lgbtq_badge.svg"
+        alt="lgbtq+ friendly"
+        height="24em"
+    >
+</span>
+<span>
+    <img
+        src="https://raw.githubusercontent.com/analog-hors/cozy-chess/45ba7a253ed82c5e9f3004d224cfab19473fcee7/img/trans_badge.svg"
+        height="24em"
+    >
+</span>
 
 `cozy-chess` is a Chess and Chess960 (Fischer Random Chess) move generation library written in Rust that aims to provide competitive move generation performance. It is largely inspired by Jordan Bray's neat [`chess`](https://github.com/jordanbray/chess) library. `cozy-chess` aims to be a safer alternative to `chess` that maintains correctness while providing similar performance.
-
-<img src="https://static.manebooru.art/img/view/2020/10/8/1827770.jpg" alt="Cozy Glow" width=20% height=30%>
 
 ## Overview
 - `no_std` compatible
