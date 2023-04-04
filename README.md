@@ -11,7 +11,7 @@
 <a href="https://ko-fi.com/P5P2JWI4P">
     <img
         src="https://img.shields.io/badge/Ko--fi-Support%20me%20on%20Ko--fi-FF5E5B?logo=kofi&logoColor=white"
-        alt="crates.io"
+        alt="ko-fi"
         height="24em"
     >
 </a>
@@ -25,6 +25,7 @@
 <span>
     <img
         src="https://raw.githubusercontent.com/analog-hors/cozy-chess/45ba7a253ed82c5e9f3004d224cfab19473fcee7/img/trans_badge.svg"
+        alt="trans rights"
         height="24em"
     >
 </span>
