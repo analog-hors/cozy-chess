@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.2
+### Fixed
+- Fixed bug where en passant was not correctly validated when parsing and building `Board`s.
+
 ## v0.3.1
 ### Fixed
 - Fixed bug where `Board::is_legal` said castles while in check were legal.
