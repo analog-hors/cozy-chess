@@ -334,6 +334,26 @@ impl Board {
         self.halfmove_clock
     }
 
+    /// Set the [halfmove clock](https://www.chessprogramming.org/Halfmove_Clock).
+    /// # Panics
+    /// This method panics if the argument is larger than 100.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board: Board = "rnbqkb1r/pppppppp/5n2/8/8/5N2/PPPPPPPP/RNBQKB1R w KQkq - 2 2"
+    ///     .parse().unwrap();
+    /// assert_eq!(board.halfmove_clock(), 2);
+    /// board.set_halfmove_clock(0);
+    /// assert_eq!(board.halfmove_clock(), 0);
+    /// ```
+    #[inline(always)]
+    pub fn set_halfmove_clock(&mut self, n: u8) {
+        if n > 100 {
+            panic!("invalid halfmove clock {}", n);
+        }
+        self.halfmove_clock = n;
+    }
+
     /// Get the [fullmove number](https://www.chessprogramming.org/Forsyth-Edwards_Notation#Fullmove_counter).
     /// # Examples
     /// ```
@@ -350,6 +370,26 @@ impl Board {
     #[inline(always)]
     pub fn fullmove_number(&self) -> u16 {
         self.fullmove_number
+    }
+
+    /// Set the [fullmove number](https://www.chessprogramming.org/Forsyth-Edwards_Notation#Fullmove_counter).
+    /// # Panics
+    /// This method panics if the argument is zero.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess::*;
+    /// let mut board = Board::default();
+    /// // The fullmove number starts at one.
+    /// assert_eq!(board.fullmove_number(), 1);
+    /// board.set_fullmove_number(2);
+    /// assert_eq!(board.fullmove_number(), 2);
+    /// ```
+    #[inline(always)]
+    pub fn set_fullmove_number(&mut self, n: u16) {
+        if n == 0 {
+            panic!("invalid fullmove number {}", n);
+        }
+        self.fullmove_number = n;
     }
 
     /// Get the [`Piece`] on `square`, if there is one.

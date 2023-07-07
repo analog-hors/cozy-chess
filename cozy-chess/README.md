@@ -107,6 +107,9 @@ $ cargo run --release --example perft -- 7
 ## Changelog
 
 ### v0.3.3
+#### Added
+- Added setters for the halfmove clock and fullmove number fields.
+
 #### Fixed
 - Fixed checkmate not taking precedence over 50 move rule draw.
 - Fixed possible overflows on halfmove clock and fullmove number.
