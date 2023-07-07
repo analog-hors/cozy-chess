@@ -602,6 +602,7 @@ impl Board {
     }
 
     /// Play a move while checking its legality. Note that this only supports Chess960 style castling.
+    /// This method does not account for the 50 move rule, and checks only whether the move would be legal.
     /// The halfmove clock is capped at 100 and the fullmove number is capped at `u16::MAX`.
     /// # Panics
     /// This is guaranteed to panic if the move is illegal.
