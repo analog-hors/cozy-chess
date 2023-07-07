@@ -448,10 +448,12 @@ impl Board {
     /// assert_eq!(board.status(), GameStatus::Drawn);
     /// ```
     pub fn status(&self) -> GameStatus {
-        if self.halfmove_clock() >= 100 {
-            GameStatus::Drawn
-        } else if self.generate_moves(|_| true) {
-            GameStatus::Ongoing
+        if self.generate_moves(|_| true) {
+            if self.halfmove_clock() < 100 {
+                GameStatus::Ongoing
+            } else {
+                GameStatus::Drawn
+            }
         } else if self.checkers().is_empty() {
             GameStatus::Drawn
         } else {
@@ -797,6 +799,13 @@ mod tests {
             assert_eq!(format!("{}", board), expected);
             assert_eq!(board.hash(), expected.parse::<Board>().unwrap().hash());
         }
+    }
+
+    #[test]
+    fn status_checkmate_priority_over_50_mr() {
+        let board = "8/8/2p5/3b1K1k/4p3/4Pp1R/5P2/8 b - - 100 113"
+            .parse::<Board>().unwrap();
+        assert_eq!(board.status(), GameStatus::Won);
     }
 }
 

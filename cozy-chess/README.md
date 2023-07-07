@@ -106,6 +106,10 @@ $ cargo run --release --example perft -- 7
 
 ## Changelog
 
+### v0.3.3
+#### Fixed
+- Fixed checkmate not taking precedence over 50 move rule draw.
+
 ### v0.3.2
 #### Fixed
 - Fixed bug where en passant was not correctly validated when parsing and building `Board`s.
