@@ -526,8 +526,11 @@ impl Board {
         if self.checkers.is_empty() {
             let mut board = self.clone();
             board.halfmove_clock += 1;
+            if board.halfmove_clock > 100 {
+                board.halfmove_clock = 100;
+            }
             if board.side_to_move() == Color::Black {
-                board.fullmove_number += 1;
+                board.fullmove_number = board.fullmove_number.saturating_add(1);
             }
             board.inner.toggle_side_to_move();
             board.inner.set_en_passant(None);
@@ -559,6 +562,7 @@ impl Board {
     }
 
     /// Play a move while checking its legality. Note that this only supports Chess960 style castling.
+    /// The halfmove clock is capped at 100 and the fullmove number is capped at `u16::MAX`.
     /// # Panics
     /// This is guaranteed to panic if the move is illegal.
     /// See [`Board::try_play`] for a non-panicking variant.
@@ -598,7 +602,7 @@ impl Board {
         Ok(())
     }
 
-    /// Play a move without checking its legality. Note that this only supports Chess960 style castling.
+    /// Unchecked version of [`Board::play`].
     /// Use this method with caution; Only legal moves should ever be passed to this method. 
     /// Playing illegal moves may corrupt the board state, causing panics.
     /// However, it will not cause undefined behaviour.
@@ -634,9 +638,12 @@ impl Board {
             self.halfmove_clock = 0;
         } else {
             self.halfmove_clock += 1;
+            if self.halfmove_clock > 100 {
+                self.halfmove_clock = 100;
+            }
         }
         if color == Color::Black {
-            self.fullmove_number += 1;
+            self.fullmove_number = self.fullmove_number.saturating_add(1);
         }
 
         let mut new_en_passant = None;
@@ -807,5 +814,20 @@ mod tests {
             .parse::<Board>().unwrap();
         assert_eq!(board.status(), GameStatus::Won);
     }
-}
 
+    #[test]
+    fn play_move_halfmove_is_capped() {
+        let mut board = "8/8/4b3/8/8/8/pK2k3/8 w - - 100 277"
+            .parse::<Board>().unwrap();
+        board.play("b2a1".parse().unwrap());
+        assert_eq!(board.halfmove_clock(), 100);
+    }
+
+    #[test]
+    fn play_move_fullmove_is_capped() {
+        let mut board = "8/Q4k2/3p3p/1PnP1p1P/2B1qPp1/8/5P2/5K2 b - - 8 65535"
+            .parse::<Board>().unwrap();
+        board.play("f7f6".parse().unwrap());
+        assert_eq!(board.fullmove_number(), u16::MAX);
+    }
+}

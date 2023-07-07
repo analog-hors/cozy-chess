@@ -346,9 +346,6 @@ impl BoardBuilder {
     }
 
     fn add_halfmove_clock(&self, board: &mut Board) -> Result<(), ()> {
-        if self.halfmove_clock > 100 {
-            return Err(());
-        }
         board.halfmove_clock = self.halfmove_clock;
         if !board.halfmove_clock_is_valid() {
             return Err(());

@@ -107,6 +107,7 @@ $ cargo run --release --example perft -- 7
 ### v0.3.3
 #### Fixed
 - Fixed checkmate not taking precedence over 50 move rule draw.
+- Fixed possible overflows on halfmove clock and fullmove number.
 
 ### v0.3.2
 #### Fixed
