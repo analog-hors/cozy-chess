@@ -12,13 +12,13 @@ pub struct CastleRights {
 impl CastleRights {
     /// Empty [`CastleRights`].
     /// # Examples
-    /// ``​`
+    /// ```
     /// # use cozy_chess_types::*;
     /// assert_eq!(CastleRights::EMPTY, CastleRights {
     ///    short: None,
     ///    long: None
     /// });
-    /// ``​`
+    /// ```
     pub const EMPTY: CastleRights = CastleRights {
         short: None,
         long: None
