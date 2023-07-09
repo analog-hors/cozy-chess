@@ -348,9 +348,7 @@ impl Board {
     /// ```
     #[inline(always)]
     pub fn set_halfmove_clock(&mut self, n: u8) {
-        if n > 100 {
-            panic!("invalid halfmove clock {}", n);
-        }
+        assert!(n <= 100, "invalid halfmove clock {}", n);
         self.halfmove_clock = n;
     }
 
@@ -386,9 +384,7 @@ impl Board {
     /// ```
     #[inline(always)]
     pub fn set_fullmove_number(&mut self, n: u16) {
-        if n == 0 {
-            panic!("invalid fullmove number {}", n);
-        }
+        assert!(n > 0, "invalid fullmove number {}", n);
         self.fullmove_number = n;
     }
 
