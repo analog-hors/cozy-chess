@@ -9,6 +9,10 @@ mod tests;
 
 /// Parses a UCI move into a [`Move`].
 ///
+/// This differs from [`Move`]'s [`core::str::FromStr`] implementation in that
+/// it converts the standard UCI castling notation to the king-captures-rook
+/// notation that `cozy-chess` uses (e.g. `e1g1` parses as `e1h1`).
+///
 /// # Examples
 ///
 /// ```
@@ -48,6 +52,10 @@ pub fn parse_uci_move(board: &Board, mv: &str) -> Result<Move, MoveParseError> {
 
 /// Returns an object that allows printing a [`Move`] in UCI format.
 ///
+/// This differs from [`Move`]'s [`Display`] implementation in that
+/// it converts the king-captures-rook notation that `cozy-chess`
+/// uses to standard UCI castling (e.g. `e1h1` displays as `e1g1`).
+/// 
 /// # Examples
 ///
 /// ```
@@ -80,7 +88,8 @@ pub fn display_uci_move(board: &Board, mv: Move) -> impl core::fmt::Display {
 
 /// Parses a Standard Algebraic Notation move into a [`Move`].
 ///
-/// The SAN is not fully validated, but the returned move is guaranteed to be legal.
+/// Canonical SAN is guaranteed to parse correctly, but non-canonical SAN may or may not parse.
+/// The returned move is always legal.
 ///
 /// # Examples
 ///

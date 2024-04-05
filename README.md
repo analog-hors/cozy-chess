@@ -52,6 +52,9 @@ By default, Rust binaries target a baseline CPU to ensure maximum compatibility 
 
 PEXT bitboards are a faster variant of the magic bitboard algorithm used by `cozy-chess`. PEXT bitboards rely on an intrinsic introduced in the [BMI2 CPU extension](https://en.wikipedia.org/wiki/X86_Bit_manipulation_instruction_set). However, it is not enabled by default, as PEXT bitboards are *slower* on AMD CPUs prior to Zen 3, which implement PEXT with microcode. PEXT bitboards can be enabled through the `pext` feature. 
 
+## A note on UCI parsing
+In order to support Chess960, `cozy-chess` uses a king-captures-rook castling notation incompatible with the standard castling representation used by the UCI protocol. This is a common use case, so the `cozy_chess::util` module provides helpers that automatically parse and convert between the formats.
+
 ## Examples
 ### Basic example
 ```rust
