@@ -107,6 +107,11 @@ $ cargo run --release --example perft -- 7
 
 ## Changelog
 
+### v0.3.4
+#### Added
+- Added helper methods for handling UCI moves.
+- Added `Square::relative_to` to get a square relative to some color.
+
 ### v0.3.3
 #### Added
 - Added setters for the halfmove clock and fullmove number fields.
@@ -127,7 +132,7 @@ $ cargo run --release --example perft -- 7
 #### Added
 - Added methods for obtaining Chess960 start positions from their Scharnagl number.
 - Added PEXT bitboards using the BMI2 PEXT intrinsic. Potentially faster than the default algorithm. Enable using the `pext` feature. 
-- Added `hash_without_ep` method for fast equivalence checks excluding the en passant square.
+- Added `Board::hash_without_ep` method for fast equivalence checks excluding the en passant square.
 - Added `Board::same_position` to check if two boards are equivalent under FIDE rules.
 - Added `Board::colored_pieces`, a shorthand for `board.colors(color) & board.pieces(piece)`.
 - Added `BitBoard::is_subset`, `BitBoard::is_superset`, and `BitBoard::is_disjoint`.
