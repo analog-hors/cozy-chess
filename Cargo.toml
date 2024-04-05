@@ -3,6 +3,7 @@ members = [
     "cozy-chess",
     "types"
 ]
+resolver = "2"
 
 [profile.bench]
 lto = "thin"
