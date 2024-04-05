@@ -9,7 +9,7 @@ mod tests;
 
 /// Parses a UCI move into a [`Move`].
 ///
-/// This differs from [`Move`]'s [`core::str::FromStr`] implementation in that
+/// This differs from [`Move`]'s [`FromStr`](core::str::FromStr) implementation in that
 /// it converts the standard UCI castling notation to the king-captures-rook
 /// notation that `cozy-chess` uses (e.g. `e1g1` parses as `e1h1`).
 ///
