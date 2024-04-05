@@ -164,4 +164,21 @@ impl Square {
     pub const fn flip_rank(self) -> Self {
         Self::index_const(self as usize ^ 0b111000)
     }
+
+    /// Get a square relative to some color.
+    /// This flips the square if viewing from black's perspective.
+    /// # Examples
+    /// ```
+    /// # use cozy_chess_types::*;
+    /// assert_eq!(Square::A1.relative_to(Color::White), Square::A1);
+    /// assert_eq!(Square::A1.relative_to(Color::Black), Square::A8);
+    /// ```
+    #[inline(always)]
+    pub const fn relative_to(self, color: Color) -> Self {
+        if let Color::White = color {
+            self
+        } else {
+            self.flip_rank()
+        }
+    }
 }
