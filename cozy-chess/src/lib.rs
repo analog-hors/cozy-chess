@@ -15,6 +15,7 @@ pub use chess_move::*;
 
 mod board;
 mod moves;
+pub mod util;
 
 pub use board::*;
 pub use moves::*;
